@@ -1,11 +1,16 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPhoneSlash } from '@fortawesome/free-solid-svg-icons';
 import { useNavigate, useParams } from 'react-router-dom';
+import io from 'socket.io-client';
+
+const socket = io('http://localhost:3001');
 
 function Room() {
     const navigate = useNavigate();
     const { id: roomId } = useParams();
+    const [streaming, setStreaming] = useState(false);
+    const [mediaRecorder, setMediaRecorder] = useState(null);
 
     useEffect(() => {
         const verifierSalle = async () => {
@@ -30,6 +35,40 @@ function Room() {
         verifierSalle();
     }, [roomId, navigate]);
 
+
+    useEffect(() => {
+        navigator.mediaDevices.getUserMedia({ audio: true })
+          .then(stream => {
+            const recorder = new MediaRecorder(stream);
+            setMediaRecorder(recorder);
+    
+            recorder.ondataavailable = (e) => {
+                if (e.data.size > 0) {
+                    const reader = new FileReader();
+                    reader.onloadend = () => {
+                        socket.emit('audioMessage', reader.result); // Envoie les données sous forme de ArrayBuffer
+                    };
+                    reader.readAsArrayBuffer(e.data);
+                }
+            };
+          })
+          .catch(error => {
+            console.error("Error accessing the microphone: ", error);
+          });
+      }, []);
+
+
+      const toggleStreaming = () => {
+        if (!streaming) {
+          mediaRecorder.start(1000); // Collect 1-second chunks of audio
+          setStreaming(true);
+        } else {
+          mediaRecorder.stop();
+          setStreaming(false);
+        }
+      };
+
+
     return (
         <div className="min-h-screen bg-orange-50 flex flex-col items-center">
             <header className="text-center mb-8">
@@ -43,10 +82,9 @@ function Room() {
                 </p>
             </main>
             <footer className="fixed bottom-0 left-0 right-0 p-4 bg-white shadow-md flex justify-center">
-                <button className="bg-orange-500 text-white px-6 py-3 rounded-full shadow-md hover:bg-orange-600 flex items-center">
-                    <FontAwesomeIcon icon={faPhoneSlash} className="mr-2" />
-                    Fin de l'appel
-                </button>
+            <button onClick={toggleStreaming}>
+                {streaming ? 'Stop Streaming' : 'Start Streaming'}
+            </button>
             </footer>
         </div>
     );

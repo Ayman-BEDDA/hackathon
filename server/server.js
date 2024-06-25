@@ -10,9 +10,9 @@ const checkFormat = require("./middlewares/check-format");
 const errorHandler = require("./middlewares/error-handler");
 const checkAuth = require("./middlewares/check-auth");
 const bodyParser = require("body-parser");
-const port = 3000;
+const port = 3001;
 const sequelize = require('./db/db');
-const socketIo = require('socket.io');
+
 sequelize.sync()
     .then(() => {
         console.log('Database synchronized');
@@ -43,20 +43,20 @@ app.post("/", (req, res) => {
 app.use(errorHandler);
 
 const server = http.createServer(app);
-const io = socketIo(server);
+const io = require('socket.io')(server, {cors: {origin: "*"}});
 
 io.on('connection', (socket) => {
-    console.log('A user connected');
+    console.log('Un utilisateur s\'est connecté');
   
     socket.on('audioMessage', (audioData) => {
-      console.log('Received audio data');
-      console.log(`Received audio data size: ${audioData.size} bytes`);
+        console.log('Données audio reçues');
+        console.log(`Taille des données audio reçues: ${audioData.length} octets`);
     });
   
     socket.on('disconnect', () => {
-      console.log('User disconnected');
+        console.log('Utilisateur déconnecté');
     });
-  });
+});
   
 
 server.listen(port, () => {

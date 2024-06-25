@@ -29,7 +29,6 @@ function Home() {
       })
       .then(response => response.json())
       .then(data => {
-        console.log('Success:', data);
         navigate(`/room/${data.id}`);
       });
     } catch (error) {
