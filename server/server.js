@@ -28,7 +28,7 @@ app.use(bodyParser.json({ limit: '50mb' }));
 
 app.use(express.json());
 app.use("/", SecurityRouter);
-app.use("/users", checkAuth,UserRouter);
+app.use("/users", UserRouter);
 app.use("/rooms",RoomRouter);
 
 app.get("/", (req, res) => {
