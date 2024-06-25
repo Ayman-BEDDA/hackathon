@@ -22,6 +22,27 @@ module.exports = (connection) => {
                     len: [1, 64],
                 },
             },
+            name: {
+                type: DataTypes.STRING(64),
+                allowNull: false,
+                validate: {
+                    len: [1, 64],
+                },
+            },
+            surname: {
+                type: DataTypes.STRING(64),
+                allowNull: false,
+                validate: {
+                    len: [1, 64],
+                },
+            },
+            Birthdate: {
+                type: DataTypes.DATE,
+                allowNull: true,
+                validate: {
+                    isDate: true,
+                },
+            },
             email: {
                 type: DataTypes.STRING(320),
                 unique: true,

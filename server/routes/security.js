@@ -10,8 +10,5 @@ const SecurityController = require("../controllers/security")(
 router.post("/login", SecurityController.login);
 router.post("/register", SecurityController.register);
 router.post("/logout", SecurityController.logout);
-router.get("/verify/:token", SecurityController.verify);
-router.post("/forgot-password", SecurityController.forgotPassword);
-router.post("/reset-password/:token", SecurityController.resetPassword);
 
 module.exports = router;
