@@ -87,11 +87,6 @@ module.exports = function UserService() {
                 });
             }
 
-            if (user && !user.isValid) {
-                throw new ValidationError({
-                    error: "Votre compte n'est pas encore activé. Veuillez vérifier votre boîte de réception pour activer votre compte.",
-                });
-            }
             user.lastLoginDate = new Date();
             await user.save();
 
