@@ -16,11 +16,6 @@ module.exports = {
         type: Sequelize.DATE,
         allowNull: true,
       }),
-,
-      queryInterface.addColumn('users', 'token', {
-        type: Sequelize.STRING(256),
-        allowNull: true,
-      })
     ]);
   },
 
@@ -29,7 +24,6 @@ module.exports = {
       queryInterface.removeColumn('users', 'name'),
       queryInterface.removeColumn('users', 'surname'),
       queryInterface.removeColumn('users', 'Birthdate'),
-      queryInterface.removeColumn('users', 'token')
     ]);
   }
 };

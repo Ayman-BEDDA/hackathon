@@ -2,10 +2,21 @@ import React from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faMicrophone } from '@fortawesome/free-solid-svg-icons';
 import mainIcon from '../assets/chatbot.png';
+//jwt-decode
+import { jwtDecode } from 'jwt-decode';
+import { useNavigate } from 'react-router-dom';
 
 function Home() {
 
+      //get the user id from the local storage
+      const token = localStorage.getItem('token');
+      const decoded = jwtDecode(token);
+      const userId = decoded.id
+
+      const navigate = useNavigate();
+
   const handleStart = () => {
+  
     try {
       fetch('http://localhost:3001/rooms', {
         method: 'POST',
@@ -13,12 +24,13 @@ function Home() {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          userId : "fd393a9b-41db-4448-a0bb-829792268385",
+          userId : userId
       })
       })
       .then(response => response.json())
       .then(data => {
         console.log('Success:', data);
+        navigate(`/room/${data.id}`);
       });
     } catch (error) {
       console.error('Error:', error);
