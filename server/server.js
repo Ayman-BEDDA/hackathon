@@ -12,6 +12,20 @@ const checkAuth = require("./middlewares/check-auth");
 const bodyParser = require("body-parser");
 const port = 3001;
 const sequelize = require('./db/db');
+const DeepSpeech = require('deepspeech');
+let modelPath = './deepspeech-0.9.3-models.pbmm';
+let model = new DeepSpeech.Model(modelPath);
+
+function transcribeAudio(audioBuffer) {
+    const audioLength = (audioBuffer.length / 2) * (1 / 16000);
+    return model.stt(audioBuffer, 16000);
+}
+  
+
+if (fs.existsSync('./deepspeech-0.9.3-models.scorer')) {
+  model.enableExternalScorer('./deepspeech-0.9.3-models.scorer');
+}
+
 
 sequelize.sync()
     .then(() => {
@@ -50,8 +64,10 @@ io.on('connection', (socket) => {
   
     socket.on('audioMessage', (audioData) => {
         console.log('Données audio reçues');
-        console.log(`Taille des données audio reçues: ${audioData.length} octets`);
-    });
+        const audioBuffer = Buffer.from(new Uint8Array(audioData));
+        const text = transcribeAudio(audioBuffer);
+        console.log(`Transcription: ${text}`);
+    });    
   
     socket.on('disconnect', () => {
         console.log('Utilisateur déconnecté');
