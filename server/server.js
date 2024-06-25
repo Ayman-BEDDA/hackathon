@@ -8,10 +8,10 @@ const SecurityRouter = require("./routes/security");
 const cors = require("cors");
 const checkFormat = require("./middlewares/check-format");
 const errorHandler = require("./middlewares/error-handler");
-const checkAuth = require("./middlewares/check-auth");
 const bodyParser = require("body-parser");
 const port = 3001;
 const sequelize = require('./db/db');
+const ttsRoutes = require('./routes/tts');
 const DeepSpeech = require('deepspeech');
 let modelPath = './deepspeech-0.9.3-models.pbmm';
 let model = new DeepSpeech.Model(modelPath);
@@ -20,7 +20,7 @@ function transcribeAudio(audioBuffer) {
     const audioLength = (audioBuffer.length / 2) * (1 / 16000);
     return model.stt(audioBuffer, 16000);
 }
-  
+
 
 if (fs.existsSync('./deepspeech-0.9.3-models.scorer')) {
   model.enableExternalScorer('./deepspeech-0.9.3-models.scorer');
@@ -45,6 +45,7 @@ app.use(express.json());
 app.use("/", SecurityRouter);
 app.use("/users", UserRouter);
 app.use("/rooms",RoomRouter);
+app.use("/", ttsRoutes);
 
 app.get("/", (req, res) => {
     res.send("Hello World!");
@@ -67,13 +68,12 @@ io.on('connection', (socket) => {
         const audioBuffer = Buffer.from(new Uint8Array(audioData));
         const text = transcribeAudio(audioBuffer);
         console.log(`Transcription: ${text}`);
-    });    
+    });
   
     socket.on('disconnect', () => {
         console.log('Utilisateur déconnecté');
     });
 });
-  
 
 server.listen(port, () => {
     console.log("Server running on port " + port);
