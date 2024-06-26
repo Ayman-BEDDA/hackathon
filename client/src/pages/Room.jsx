@@ -11,7 +11,8 @@ function Room() {
     const { id: roomId } = useParams();
     const [streaming, setStreaming] = useState(false);
     const [room, setRoom] = useState(null);
-    const mediaRecorderRef = useRef(null); // Use ref to hold MediaRecorder
+    const mediaRecorderRef = useRef(null);
+    const audioChunksRef = useRef([]);
     const [transcription, setTranscription] = useState('');
 
     useEffect(() => {
@@ -41,16 +42,12 @@ function Room() {
     useEffect(() => {
         navigator.mediaDevices.getUserMedia({ audio: true })
             .then(stream => {
-                const recorder = new MediaRecorder(stream, { mimeType: 'audio/webm' });
+                const recorder = new MediaRecorder(stream, { mimeType: 'audio/webm; codecs=opus' });
                 mediaRecorderRef.current = recorder;
 
                 recorder.ondataavailable = (e) => {
                     if (e.data.size > 0) {
-                        const reader = new FileReader();
-                        reader.onloadend = () => {
-                            socket.emit('audioMessage', reader.result);
-                        };
-                        reader.readAsArrayBuffer(e.data);
+                        audioChunksRef.current.push(e.data);
                     }
                 };
             })
@@ -75,12 +72,21 @@ function Room() {
         const recorder = mediaRecorderRef.current;
         if (!streaming) {
             if (recorder) {
-                recorder.start(1000);
+                audioChunksRef.current = [];
+                recorder.start();
                 setStreaming(true);
             }
         } else {
             if (recorder) {
                 recorder.stop();
+                recorder.onstop = () => {
+                    const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm; codecs=opus' });
+                    const reader = new FileReader();
+                    reader.onloadend = () => {
+                        socket.emit('audioMessage', reader.result);
+                    };
+                    reader.readAsArrayBuffer(audioBlob);
+                };
                 setStreaming(false);
             }
         }
