@@ -55,7 +55,8 @@ app.post("/", (req, res) => {
     res.json(req.body);
 });
 
-app.post("/chat", async (req, res) => {
+app.post("/response/:roomId", async (req, res) => {
+    const { roomId } = req.params;
     const { message } = req.body;
 
     if (!message) {
@@ -101,6 +102,7 @@ app.post("/chat", async (req, res) => {
         res.status(500).json({ error: 'Internal server error' });
     }
 });
+
 
 app.use(errorHandler);
 
