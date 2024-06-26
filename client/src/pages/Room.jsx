@@ -1,13 +1,15 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faPhoneSlash } from '@fortawesome/free-solid-svg-icons';
+import { faMicrophone, faMicrophoneSlash } from '@fortawesome/free-solid-svg-icons';
 import { useNavigate, useParams } from 'react-router-dom';
 import axios from 'axios';
 import io from 'socket.io-client';
+import {jwtDecode} from 'jwt-decode';
 
 const socket = io('http://localhost:3001');
 
 function Room() {
+    const user = jwtDecode(localStorage.getItem('token'));
     const navigate = useNavigate();
     const { id: roomId } = useParams();
     const [streaming, setStreaming] = useState(false);
@@ -16,6 +18,7 @@ function Room() {
     const audioChunksRef = useRef([]);
     const [messages, setMessages] = useState([]);
     const [audioUrl, setAudioUrl] = useState(null);
+    const [transcriptions, setTranscriptions] = useState([]); // State for user transcriptions
 
     useEffect(() => {
         const verifierSalle = async () => {
@@ -75,6 +78,28 @@ function Room() {
         };
     }, []);
 
+    useEffect(() => {
+        socket.on('transcriptionResult', (transcription) => {
+            console.log('Transcription:', transcription);
+            setTranscriptions(prevTranscriptions => [...prevTranscriptions, transcription]);
+            setMessages(prevMessages => [...prevMessages, { role: 'user', content: transcription }]);
+        });
+    }, []);
+
+    const leaveRoom = async () => {
+        try {
+            await fetch(`http://localhost:3001/rooms/${roomId}`, {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            });
+            navigate('/');
+        } catch (error) {
+            console.error('Erreur:', error);
+        }
+    };
+
     const toggleStreaming = () => {
         const recorder = mediaRecorderRef.current;
         if (!streaming) {
@@ -112,34 +137,45 @@ function Room() {
     };
 
     return (
-        <div className="min-h-screen bg-orange-50 flex flex-col items-center">
-            <header className="text-center mb-8">
-                <main className="flex flex-col items-center mb-20">
-                    <h1 className="text-4xl font-bold text-orange-500">Salle {room?.id}</h1>
-                </main>
+        <div className="bg-orange-50 flex flex-col items-center p-4">
+            <header className="mb-8 w-full flex items-center justify-between">
+                <div className="flex flex-col">
+                <p className="text-sm font-bold text-orange-600">Salle ID : {room?.id}</p>
+                <p className="text-sm font-bold text-orange-600">Patient : <span className="text-orange-600">{user.name} {user.surname}</span></p>
+                </div>
+                <button className="bg-orange-500 text-white px-4 py-2 rounded-full shadow-md transition duration-300 hover:bg-orange-600" onClick={leaveRoom}>
+                    Quitter la salle
+                </button>
             </header>
-            <p className="text-xl text-black-700">
-                {streaming ? 'En cours de streaming audio' : 'Cliquez sur le bouton ci-dessous pour commencer le streaming audio'}
-            </p>
-            <button className="bg-orange-500 text-white px-6 py-3 rounded-full shadow-md hover:bg-orange-600 transition duration-300 flex items-center animate-pulse" onClick={toggleStreaming}>
-                <FontAwesomeIcon icon={faPhoneSlash} className="mr-2" />
-                {streaming ? 'Arrêter le streaming audio' : 'Commencer le streaming audio'}
-            </button>
-            <div className="mt-8">
-                <h2 className="text-2xl font-bold text-orange-500">Chat</h2>
-                <div className="bg-white p-4 rounded-lg shadow-md w-full max-w-md">
-                    {messages.map((message, index) => (
-                        <div key={index} className={`p-2 rounded-lg mb-2 ${message.role === 'user' ? 'bg-blue-200' : 'bg-gray-200'}`}>
-                            <strong>{message.role === 'user' ? 'Vous' : 'Assistant'}</strong>: {message.content}
-                        </div>
-                    ))}
+            <div className="flex items-center w-full justify-center flex-col">
+                <div className="flex flex-col items-center mb-12">
+                    <p className="text-md text-gray-800 mb-4">
+                        {streaming ? 'Une fois que vous avez terminé de parler, appuyez sur le bouton ci-dessous pour couper le micro' : 'Cliquez sur le bouton ci-dessous pour commencer à parler.'}
+                    </p>
+                    <button
+                        className={`bg-orange-500 text-white px-8 py-4 rounded-full shadow-md transition duration-300 flex items-center ${streaming ? 'bg-red-500 hover:bg-red-600' : 'hover:bg-orange-600'} animate-pulse`}
+                        onClick={toggleStreaming}
+                    >
+                        <FontAwesomeIcon icon={streaming ? faMicrophone: faMicrophoneSlash } className="mr-2" />
+                    </button>
+                </div>
+                <div className="mt-8 w-full max-w-lg mx-auto p-4 bg-white rounded shadow-md h-96 overflow-y-auto">
+                    <h2 className="text-lg font-bold text-orange-600">Messages</h2>
+                    <ul className="mt-4">
+                        {messages.map((message, index) => (
+                            <li key={index} className="mb-2">
+                                <div className={`p-2 rounded ${message.role === 'user' ? 'bg-white-400 text-black-700' : 'bg-orange-400 text-white'}`}>
+                                    {message.content}
+                                </div>
+                            </li>
+                        ))}
+                    </ul>
+
+                    {audioUrl && (
+                        <audio src={audioUrl} controls className="mt-4" />
+                    )}
                 </div>
             </div>
-            {audioUrl && (
-                <div className="mt-4">
-                    <audio controls src={audioUrl}></audio>
-                </div>
-            )}
         </div>
     );
 }

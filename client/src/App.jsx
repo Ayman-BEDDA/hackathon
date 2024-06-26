@@ -12,7 +12,7 @@ function App() {
       <Router>
           <div className="App">
               <Navbar/>
-              <div className="bg-orange-50 min-h-screen">
+              <div className="bg-orange-50 min-h-screen pt-20">
                   <Routes>
                       <Route path="/" element={<Home/>}/>
                       <Route path="/register" element={<Register/>}/>

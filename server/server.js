@@ -182,6 +182,8 @@ io.on('connection', (socket) => {
             const transcription = await transcribeAudio(audioFilePath);
             console.log('Transcription:', transcription);
 
+            socket.emit('transcriptionResult', transcription);
+
             const chatResponse = await getChatResponse(transcription);
             console.log('Chat response:', chatResponse);
 
@@ -189,6 +191,17 @@ io.on('connection', (socket) => {
         } catch (error) {
             console.error('Error saving or transcribing audio file:', error);
             socket.emit('transcriptionError', 'Error during audio transcription.');
+
+            if (fs.existsSync(audioFilePath)) {
+                fs.unlinkSync(audioFilePath);
+                console.log('Audio file deleted:', audioFilePath);
+            }
+            
+        } finally {
+            if (fs.existsSync(audioFilePath)) {
+                fs.unlinkSync(audioFilePath);
+                console.log('Audio file deleted:', audioFilePath);
+            }
         }
     });
 
