@@ -1,7 +1,6 @@
 require("dotenv").config();
 const express = require("express");
 const http = require('http');
-const { OpenAI } = require("openai");
 const FormData = require('form-data');
 const UserRouter = require("./routes/user");
 const RoomRouter = require("./routes/room");
@@ -12,23 +11,17 @@ const errorHandler = require("./middlewares/error-handler");
 const bodyParser = require("body-parser");
 const sequelize = require('./db/db');
 const fs = require('fs');
-const path = require('path');
-const { tmpdir } = require('os');
 const { join } = require('path');
 const { v4: uuidv4 } = require('uuid');
 const ttsRoutes = require('./routes/tts');
 const axios = require('axios');
+const OpenAI = require('openai');
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY
-});
+const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
+
+const openai = new OpenAI(OPENAI_API_KEY);
 
 const conversations = {};
-
-function transcribeAudio(audioBuffer) {
-    const audioLength = (audioBuffer.length / 2) * (1 / 16000);
-    return model.stt(audioBuffer, 16000);
-}
 
 const app = express();
 const port = 3001;
@@ -97,12 +90,12 @@ app.post("/response/:roomId", async (req, res) => {
     });
 
     try {
-        const result = await openai.chat.completions.create({
+        const result = await openai.createChatCompletion({
             model: "gpt-3.5-turbo",
             messages: conversations[roomId]
         });
 
-        const responseMessage = result.choices[0].message.content;
+        const responseMessage = result.data.choices[0].message.content;
 
         // Ajouter la réponse de l'assistant à la conversation
         conversations[roomId].push({
@@ -125,8 +118,6 @@ app.use(errorHandler);
 const server = http.createServer(app);
 const io = require('socket.io')(server, { cors: { origin: "*" } });
 
-const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
-
 const transcribeAudio = async (audioFilePath) => {
     const form = new FormData();
     form.append('file', fs.createReadStream(audioFilePath));
@@ -147,6 +138,23 @@ const transcribeAudio = async (audioFilePath) => {
         return response.data.text;
     } catch (error) {
         console.error('Error during transcription:', error.response ? error.response.data : error.message);
+        throw error;
+    }
+};
+
+const getChatResponse = async (message) => {
+    try {
+        const response = await openai.chat.completions.create({
+            model: "gpt-3.5-turbo",
+            messages: [
+                { role: "system", content: "You are a medical assistant." },
+                { role: "user", content: message }
+            ],
+        });
+
+        return response.choices[0].message.content;
+    } catch (error) {
+        console.error('Error during chat response:', error.response ? error.response.data : error.message);
         throw error;
     }
 };
@@ -174,7 +182,10 @@ io.on('connection', (socket) => {
             const transcription = await transcribeAudio(audioFilePath);
             console.log('Transcription:', transcription);
 
-            socket.emit('transcriptionResult', transcription);
+            const chatResponse = await getChatResponse(transcription);
+            console.log('Chat response:', chatResponse);
+
+            socket.emit('chatResponse', chatResponse);
         } catch (error) {
             console.error('Error saving or transcribing audio file:', error);
             socket.emit('transcriptionError', 'Error during audio transcription.');
