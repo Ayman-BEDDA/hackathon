@@ -24,6 +24,16 @@ services:
       - ./server:/usr/src/app
     command: npm run dev
 
+  python:
+    build: ./python
+    ports:
+      - 5000:5000
+    volumes:
+      - ./python:/usr/src/app
+      - /usr/src/app/uploads
+    depends_on:
+      - db
+
 volumes:
   db-data: {}
   pg-data: {}
