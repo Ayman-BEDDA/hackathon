@@ -1,8 +1,8 @@
 require("dotenv").config();
 const express = require("express");
-const app = express();
 const http = require('http');
-const { OpenAI } = require("openai"); // Importation de la librairie OpenAI
+const { OpenAI } = require("openai");
+const FormData = require('form-data');
 const UserRouter = require("./routes/user");
 const RoomRouter = require("./routes/room");
 const SecurityRouter = require("./routes/security");
@@ -10,11 +10,14 @@ const cors = require("cors");
 const checkFormat = require("./middlewares/check-format");
 const errorHandler = require("./middlewares/error-handler");
 const bodyParser = require("body-parser");
-const port = 3001;
 const sequelize = require('./db/db');
+const fs = require('fs');
+const path = require('path');
+const { tmpdir } = require('os');
+const { join } = require('path');
+const { v4: uuidv4 } = require('uuid');
 const ttsRoutes = require('./routes/tts');
 
-// Instanciation de l'objet OpenAI
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY
 });
@@ -23,6 +26,9 @@ function transcribeAudio(audioBuffer) {
     const audioLength = (audioBuffer.length / 2) * (1 / 16000);
     return model.stt(audioBuffer, 16000);
 }
+
+const app = express();
+const port = 3001;
 
 sequelize.sync()
     .then(() => {
@@ -49,7 +55,6 @@ app.post("/", (req, res) => {
     res.json(req.body);
 });
 
-// Nouvelle route POST pour interagir avec l'API OpenAI
 app.post("/chat", async (req, res) => {
     const { message } = req.body;
 
@@ -103,17 +108,32 @@ const server = http.createServer(app);
 const io = require('socket.io')(server, { cors: { origin: "*" } });
 
 io.on('connection', (socket) => {
-    console.log('Un utilisateur s\'est connecté');
+    console.log('A user connected');
 
-    socket.on('audioMessage', (audioData) => {
-        console.log('Données audio reçues');
-        const audioBuffer = Buffer.from(new Uint8Array(audioData));
-        const text = transcribeAudio(audioBuffer);
-        console.log(`Transcription: ${text}`);
+    socket.on('audioMessage', async (audioData) => {
+        console.log('Audio data received');
+        const audioBuffer = Buffer.from(audioData);
+        console.log(`Received audio data size: ${audioBuffer.length} bytes`);
+
+        const tempAudioFilePath = join(tmpdir(), `${uuidv4()}.webm`);
+        console.log('Saving audio data to temporary file:', tempAudioFilePath);
+        
+        try {
+            fs.writeFileSync(tempAudioFilePath, audioBuffer);
+
+            const form = new FormData();
+            form.append('file', fs.createReadStream(tempAudioFilePath));
+
+        } catch (error) {
+            console.error('Error during Huggingface transcription:', error);
+            socket.emit('transcriptionError', 'Error during audio transcription.');
+        } finally {
+            fs.unlinkSync(tempAudioFilePath); // Clean up the temporary file
+        }
     });
 
     socket.on('disconnect', () => {
-        console.log('Utilisateur déconnecté');
+        console.log('User disconnected');
     });
 });
 

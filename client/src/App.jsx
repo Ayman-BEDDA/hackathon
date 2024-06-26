@@ -12,12 +12,13 @@ function App() {
       <Router>
           <div className="App">
               <Navbar/>
-              <div className="container mx-auto p-4">
+              <div className="bg-orange-50 min-h-screen">
                   <Routes>
                       <Route path="/" element={<Home/>}/>
                       <Route path="/register" element={<Register/>}/>
                       <Route path="/login" element={<Login/>}/>
                       <Route path="/room/:id" element={<Room/>}/>
+                      <Route path="/logout" element={<Navigate to="/" replace />} />
                       <Route path="*" element={<Navigate to="/" replace/>}/>
                       <Route path="/response-vocal" element={<TextToSpeech/>}/>
                   </Routes>
