@@ -8,14 +8,16 @@ import { useNavigate } from 'react-router-dom';
 
 function Home() {
 
-      //get the user id from the local storage
-      const token = localStorage.getItem('token');
-      const decoded = jwtDecode(token);
-      const userId = decoded.id
 
-      const navigate = useNavigate();
+  const token = localStorage.getItem('token');
+
+  const navigate = useNavigate();
 
   const handleStart = () => {
+    if (!token) {
+      navigate('/login');
+      return;
+    }
   
     try {
       fetch('http://localhost:3001/rooms', {
@@ -24,7 +26,7 @@ function Home() {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          userId : userId
+          userId : token ? jwtDecode(token).id : null
       })
       })
       .then(response => response.json())
@@ -37,7 +39,7 @@ function Home() {
   }
 
   return (
-    <div className="min-h-screen bg-orange-50 flex flex-col items-center justify-center">
+    <div className="min-h-screen bg-orange-50 flex flex-col items-center justify-center ">
       <header className="text-center mb-8">
         <main className="flex flex-col items-center mb-20">
           <img src={mainIcon} alt="CalMedicaCare" className="w-40 h-40 mx-auto mb-4" />

@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
 import axios from 'axios';
+import {useNavigate} from "react-router-dom";
 
 const Login = () => {
+    const navigate = useNavigate();
     const [formData, setFormData] = useState({
         email: '',
         password: '',
@@ -24,6 +26,7 @@ const Login = () => {
             localStorage.setItem('token', response.data.token);
             setSuccess('Connexion réussie !');
             setError('');
+            navigate('/');
         } catch (err) {
             setError(err.response?.data?.error || 'Une erreur est survenue lors de la connexion.');
             setSuccess('');
@@ -31,7 +34,7 @@ const Login = () => {
     };
 
     return (
-        <div className="max-w-md mx-auto mt-10">
+        <div className="max-w-md mx-auto">
             <h2 className="text-2xl font-bold mb-5">Connexion</h2>
             {error && <p className="text-red-500 mb-4">{error}</p>}
             {success && <p className="text-green-500 mb-4">{success}</p>}

@@ -41,7 +41,7 @@ const Register = () => {
     };
 
     return (
-        <div className="max-w-md mx-auto mt-10">
+        <div className="max-w-md mx-auto">
             <h2 className="text-2xl font-bold mb-5">Créer un compte</h2>
             {error && <p className="text-red-500 mb-4">{error}</p>}
             {success && <p className="text-green-500 mb-4">{success}</p>}

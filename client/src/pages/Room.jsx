@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPhoneSlash } from '@fortawesome/free-solid-svg-icons';
 import { useNavigate, useParams } from 'react-router-dom';
@@ -10,7 +10,9 @@ function Room() {
     const navigate = useNavigate();
     const { id: roomId } = useParams();
     const [streaming, setStreaming] = useState(false);
-    const [mediaRecorder, setMediaRecorder] = useState(null);
+    const [room, setRoom] = useState(null);
+    const mediaRecorderRef = useRef(null); // Use ref to hold MediaRecorder
+    const [transcription, setTranscription] = useState('');
 
     useEffect(() => {
         const verifierSalle = async () => {
@@ -23,6 +25,7 @@ function Room() {
                 });
 
                 const data = await response.json();
+                setRoom(data);
                 if (data.error) {
                     navigate('/');
                 }
@@ -35,57 +38,72 @@ function Room() {
         verifierSalle();
     }, [roomId, navigate]);
 
-
     useEffect(() => {
         navigator.mediaDevices.getUserMedia({ audio: true })
-          .then(stream => {
-            const recorder = new MediaRecorder(stream);
-            setMediaRecorder(recorder);
-    
-            recorder.ondataavailable = (e) => {
-                if (e.data.size > 0) {
-                    const reader = new FileReader();
-                    reader.onloadend = () => {
-                        socket.emit('audioMessage', reader.result); // Envoie les données sous forme de ArrayBuffer
-                    };
-                    reader.readAsArrayBuffer(e.data);
-                }
-            };
-          })
-          .catch(error => {
-            console.error("Error accessing the microphone: ", error);
-          });
-      }, []);
+            .then(stream => {
+                const recorder = new MediaRecorder(stream, { mimeType: 'audio/webm' });
+                mediaRecorderRef.current = recorder;
 
+                recorder.ondataavailable = (e) => {
+                    if (e.data.size > 0) {
+                        const reader = new FileReader();
+                        reader.onloadend = () => {
+                            socket.emit('audioMessage', reader.result);
+                        };
+                        reader.readAsArrayBuffer(e.data);
+                    }
+                };
+            })
+            .catch(error => {
+                console.error("Error accessing the microphone: ", error);
+            });
 
-      const toggleStreaming = () => {
+        return () => {
+            if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
+                mediaRecorderRef.current.stop();
+            }
+        };
+    }, []);
+
+    useEffect(() => {
+        socket.on('transcriptionResult', (transcription) => {
+            setTranscription(transcription);
+        });
+    }, []);
+
+    const toggleStreaming = () => {
+        const recorder = mediaRecorderRef.current;
         if (!streaming) {
-          mediaRecorder.start(1000); // Collect 1-second chunks of audio
-          setStreaming(true);
+            if (recorder) {
+                recorder.start(1000);
+                setStreaming(true);
+            }
         } else {
-          mediaRecorder.stop();
-          setStreaming(false);
+            if (recorder) {
+                recorder.stop();
+                setStreaming(false);
+            }
         }
-      };
-
+    };
 
     return (
         <div className="min-h-screen bg-orange-50 flex flex-col items-center">
             <header className="text-center mb-8">
                 <main className="flex flex-col items-center mb-20">
-                    <h1 className="text-4xl font-bold text-orange-500">Room</h1>
+                    <h1 className="text-4xl font-bold text-orange-500">Salle {room?.id}</h1>
                 </main>
             </header>
-            <main>
-                <p className="text-xl text-black-700">
-                    Content
-                </p>
-            </main>
-            <footer className="fixed bottom-0 left-0 right-0 p-4 bg-white shadow-md flex justify-center">
-            <button onClick={toggleStreaming}>
-                {streaming ? 'Stop Streaming' : 'Start Streaming'}
+            <p className="text-xl text-black-700">
+                {streaming ? 'En cours de streaming audio' : 'Cliquez sur le bouton ci-dessous pour commencer le streaming audio'}
+            </p>
+            <button className="bg-orange-500 text-white px-6 py-3 rounded-full shadow-md hover:bg-orange-600 transition duration-300 flex items-center transition duration-300 flex items-center animate-pulse" onClick={toggleStreaming}>
+                <FontAwesomeIcon icon={faPhoneSlash} className="mr-2" />
+                {streaming ? 'Arrêter le streaming audio' : 'Commencer le streaming audio'}
             </button>
-            </footer>
+            <div className="mt-8">
+                <h2 className="text-2xl font-bold text-orange-500">Transcription</h2>
+                <p className="text-black-700">{transcription}</p>
+            </div>
         </div>
     );
 }
