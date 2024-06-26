@@ -8,7 +8,6 @@ const SecurityRouter = require("./routes/security");
 const cors = require("cors");
 const checkFormat = require("./middlewares/check-format");
 const errorHandler = require("./middlewares/error-handler");
-const checkAuth = require("./middlewares/check-auth");
 const bodyParser = require("body-parser");
 const sequelize = require('./db/db');
 const fs = require('fs');
@@ -16,6 +15,7 @@ const path = require('path');
 const { tmpdir } = require('os');
 const { join } = require('path');
 const { v4: uuidv4 } = require('uuid');
+const ttsRoutes = require('./routes/tts');
 
 const app = express();
 const port = 3001;
@@ -35,6 +35,7 @@ app.use(express.json());
 app.use("/", SecurityRouter);
 app.use("/users", UserRouter);
 app.use("/rooms", RoomRouter);
+app.use("/", ttsRoutes);
 
 app.get("/", (req, res) => {
     res.send("Hello World!");

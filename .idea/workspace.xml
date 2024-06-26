@@ -5,22 +5,31 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="c1ab6942-29e5-46ed-898a-9f85385ebb9f" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/client/src/components/Navbar.jsx" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/client/src/pages/Login.jsx" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/client/src/pages/Register.jsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/client/src/components/TextToSpeech.jsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/server/controllers/tts.js" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/server/routes/tts.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/dataSources.local.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/dataSources.local.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/dataSources.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/dataSources.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/dataSources/281546ca-fde9-4645-a07e-66498e8fbe0a/storage_v2/_src_/database/postgres.edMnLQ.meta" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/dataSources/281546ca-fde9-4645-a07e-66498e8fbe0a/storage_v2/_src_/database/postgres.edMnLQ/schema/information_schema.FNRwLQ.meta" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/dataSources/281546ca-fde9-4645-a07e-66498e8fbe0a/storage_v2/_src_/database/postgres.edMnLQ/schema/pg_catalog.0S1ZNQ.meta" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/dataSources/2edff216-ce5a-4be5-919a-40f9453d32ce.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/dataSources/2edff216-ce5a-4be5-919a-40f9453d32ce.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/dataSources/85bc05ab-e123-4adb-9f0d-1065d0967022.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/dataSources/85bc05ab-e123-4adb-9f0d-1065d0967022/storage_v2/_src_/database/app.IXoBAA.meta" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/dataSources/85bc05ab-e123-4adb-9f0d-1065d0967022/storage_v2/_src_/database/app.IXoBAA/schema/information_schema.FNRwLQ.meta" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/dataSources/85bc05ab-e123-4adb-9f0d-1065d0967022/storage_v2/_src_/database/app.IXoBAA/schema/pg_catalog.0S1ZNQ.meta" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/dataSources/85bc05ab-e123-4adb-9f0d-1065d0967022/storage_v2/_src_/database/app.IXoBAA/schema/public.abK9xQ.meta" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/dataSources/dac7facc-30fb-4d69-a012-c8db70a5343e.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/dataSources/dac7facc-30fb-4d69-a012-c8db70a5343e/storage_v2/_src_/database/app.IXoBAA.meta" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/dataSources/dac7facc-30fb-4d69-a012-c8db70a5343e/storage_v2/_src_/database/app.IXoBAA/schema/information_schema.FNRwLQ.meta" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/dataSources/dac7facc-30fb-4d69-a012-c8db70a5343e/storage_v2/_src_/database/app.IXoBAA/schema/pg_catalog.0S1ZNQ.meta" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/dataSources/dac7facc-30fb-4d69-a012-c8db70a5343e/storage_v2/_src_/database/app.IXoBAA/schema/public.abK9xQ.meta" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/client/package-lock.json" beforeDir="false" afterPath="$PROJECT_DIR$/client/package-lock.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/client/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/client/package.json" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/client/src/App.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/client/src/App.jsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/client/src/pages/Home.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/client/src/pages/Home.jsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/client/tailwind.config.js" beforeDir="false" afterPath="$PROJECT_DIR$/client/tailwind.config.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/server/config/config.js" beforeDir="false" afterPath="$PROJECT_DIR$/server/config/config.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/server/controllers/security.js" beforeDir="false" afterPath="$PROJECT_DIR$/server/controllers/security.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/server/db/models/User.js" beforeDir="false" afterPath="$PROJECT_DIR$/server/db/models/User.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/server/mailers/mailer.js" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/server/migrations/20240616124934-create-users-table.js" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/server/routes/security.js" beforeDir="false" afterPath="$PROJECT_DIR$/server/routes/security.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/server/services/user.js" beforeDir="false" afterPath="$PROJECT_DIR$/server/services/user.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/client/src/components/Navbar.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/client/src/components/Navbar.jsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/server/package-lock.json" beforeDir="false" afterPath="$PROJECT_DIR$/server/package-lock.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/server/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/server/package.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/server/server.js" beforeDir="false" afterPath="$PROJECT_DIR$/server/server.js" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -31,6 +40,11 @@
     <execution />
   </component>
   <component name="Git.Settings">
+    <option name="RECENT_BRANCH_BY_REPOSITORY">
+      <map>
+        <entry key="$PROJECT_DIR$" value="feature/login-register" />
+      </map>
+    </option>
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
   <component name="MarkdownSettingsMigration">
