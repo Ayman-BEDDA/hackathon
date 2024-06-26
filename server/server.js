@@ -17,6 +17,7 @@ const { tmpdir } = require('os');
 const { join } = require('path');
 const { v4: uuidv4 } = require('uuid');
 const ttsRoutes = require('./routes/tts');
+const axios = require('axios');
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY
@@ -124,6 +125,32 @@ app.use(errorHandler);
 const server = http.createServer(app);
 const io = require('socket.io')(server, { cors: { origin: "*" } });
 
+const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
+
+const transcribeAudio = async (audioFilePath) => {
+    const form = new FormData();
+    form.append('file', fs.createReadStream(audioFilePath));
+    form.append('model', 'whisper-1');
+
+    try {
+        const response = await axios.post(
+            'https://api.openai.com/v1/audio/transcriptions',
+            form,
+            {
+                headers: {
+                    'Authorization': `Bearer ${OPENAI_API_KEY}`,
+                    ...form.getHeaders()
+                }
+            }
+        );
+
+        return response.data.text;
+    } catch (error) {
+        console.error('Error during transcription:', error.response ? error.response.data : error.message);
+        throw error;
+    }
+};
+
 io.on('connection', (socket) => {
     console.log('A user connected');
 
@@ -132,20 +159,25 @@ io.on('connection', (socket) => {
         const audioBuffer = Buffer.from(audioData);
         console.log(`Received audio data size: ${audioBuffer.length} bytes`);
 
-        const tempAudioFilePath = join(tmpdir(), `${uuidv4()}.webm`);
-        console.log('Saving audio data to temporary file:', tempAudioFilePath);
-        
+        const localDirectory = './audio_files';
+        if (!fs.existsSync(localDirectory)){
+            fs.mkdirSync(localDirectory);
+        }
+
+        const audioFilePath = join(localDirectory, `${uuidv4()}.webm`);
+        console.log('Saving audio data to local file:', audioFilePath);
+
         try {
-            fs.writeFileSync(tempAudioFilePath, audioBuffer);
+            fs.writeFileSync(audioFilePath, audioBuffer);
+            console.log('Audio data successfully saved to', audioFilePath);
 
-            const form = new FormData();
-            form.append('file', fs.createReadStream(tempAudioFilePath));
+            const transcription = await transcribeAudio(audioFilePath);
+            console.log('Transcription:', transcription);
 
+            socket.emit('transcriptionResult', transcription);
         } catch (error) {
-            console.error('Error during Huggingface transcription:', error);
+            console.error('Error saving or transcribing audio file:', error);
             socket.emit('transcriptionError', 'Error during audio transcription.');
-        } finally {
-            fs.unlinkSync(tempAudioFilePath); // Clean up the temporary file
         }
     });
 
