@@ -22,6 +22,8 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY
 });
 
+const conversations = {};
+
 function transcribeAudio(audioBuffer) {
     const audioLength = (audioBuffer.length / 2) * (1 / 16000);
     return model.stt(audioBuffer, 16000);
@@ -63,39 +65,52 @@ app.post("/response/:roomId", async (req, res) => {
         return res.status(400).json({ error: "Message is required" });
     }
 
+    if (!conversations[roomId]) {
+        conversations[roomId] = [
+            {
+                role: "system",
+                content: `
+                    Tu es un assistant médical virtuel spécialisé dans l'analyse des données patient collectées via SMS et messages vocaux. 
+                    Ton rôle est d'aider à identifier des thèmes récurrents, des préoccupations des patients et des tendances émergentes pour améliorer les services médicaux. 
+                    Tu dois fournir des analyses utiles et proposer des projets pertinents basés sur ces données.
+
+                    Voici le contexte de ton application:
+                    - Collecte de données: Réponses SMS et messages vocaux des patients.
+                    - Objectif: Analyser ces données pour en tirer des informations utiles et proposer des projets pertinents.
+                    - Techniques utilisées: Transcription audio, analyse textuelle, analyse quantitative, etc.
+                    - Exemples de solutions: Chatbots médicaux, systèmes d’analyse de sentiments, systèmes de prévisions, tableaux de bord, études de données.
+
+                    Informations sur le client:
+                    - Société: Calmedica, fondée en 2013 par Corinne Segalen (médecin) et Alexis Hernot (ingénieur).
+                    - Mission: Révolutionner le rapport entre le patient et le système de soin, faire gagner du temps aux personnels de santé.
+                    - Produit: Plateforme de télésuivi multi-pathologies, agent conversationnel fonctionnant par SMS.
+                    - Chiffres clés: 20 millions de patients suivis, 150 établissements équipés, 500 parcours patients.
+                `
+            }
+        ];
+    }
+
+    conversations[roomId].push({
+        role: "user",
+        content: message
+    });
+
     try {
         const result = await openai.chat.completions.create({
             model: "gpt-3.5-turbo",
-            messages: [
-                {
-                    role: "system",
-                    content: `
-                        Tu es un assistant médical virtuel spécialisé dans l'analyse des données patient collectées via SMS et messages vocaux. 
-                        Ton rôle est d'aider à identifier des thèmes récurrents, des préoccupations des patients et des tendances émergentes pour améliorer les services médicaux. 
-                        Tu dois fournir des analyses utiles et proposer des projets pertinents basés sur ces données.
+            messages: conversations[roomId]
+        });
 
-                        Voici le contexte de ton application:
-                        - Collecte de données: Réponses SMS et messages vocaux des patients.
-                        - Objectif: Analyser ces données pour en tirer des informations utiles et proposer des projets pertinents.
-                        - Techniques utilisées: Transcription audio, analyse textuelle, analyse quantitative, etc.
-                        - Exemples de solutions: Chatbots médicaux, systèmes d’analyse de sentiments, systèmes de prévisions, tableaux de bord, études de données.
+        const responseMessage = result.choices[0].message.content;
 
-                        Informations sur le client:
-                        - Société: Calmedica, fondée en 2013 par Corinne Segalen (médecin) et Alexis Hernot (ingénieur).
-                        - Mission: Révolutionner le rapport entre le patient et le système de soin, faire gagner du temps aux personnels de santé.
-                        - Produit: Plateforme de télésuivi multi-pathologies, agent conversationnel fonctionnant par SMS.
-                        - Chiffres clés: 20 millions de patients suivis, 150 établissements équipés, 500 parcours patients.
-                    `
-                },
-                {
-                    role: "user",
-                    content: message
-                }
-            ]
+        // Ajouter la réponse de l'assistant à la conversation
+        conversations[roomId].push({
+            role: "assistant",
+            content: responseMessage
         });
 
         res.json({
-            response: result.choices[0].message.content
+            response: responseMessage
         });
     } catch (error) {
         console.error('Error with OpenAI API:', error);
