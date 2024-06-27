@@ -148,7 +148,7 @@ const getChatResponse = async (message) => {
         const response = await openai.chat.completions.create({
             model: "gpt-3.5-turbo",
             messages: [
-                { role: "system", content: "Tu es un assistant médical virtuel. Tu dois répondre aux questions des patients et leur fournir des informations utiles." },
+                { role: "system", content: "Tu es un assistant médical virtuel. Tu dois répondre aux questions des patients et leur fournir des informations utiles. Fais des phrases courtes" },
                 { role: "user", content: message }
             ],
         });

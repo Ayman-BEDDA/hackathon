@@ -5,31 +5,9 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="c1ab6942-29e5-46ed-898a-9f85385ebb9f" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/dataSources.local.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/dataSources.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/dataSources/2edff216-ce5a-4be5-919a-40f9453d32ce.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/dataSources/2edff216-ce5a-4be5-919a-40f9453d32ce/storage_v2/_src_/database/app.IXoBAA.meta" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/dataSources/2edff216-ce5a-4be5-919a-40f9453d32ce/storage_v2/_src_/database/app.IXoBAA/schema/information_schema.FNRwLQ.meta" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/dataSources/2edff216-ce5a-4be5-919a-40f9453d32ce/storage_v2/_src_/database/app.IXoBAA/schema/pg_catalog.0S1ZNQ.meta" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/dataSources/2edff216-ce5a-4be5-919a-40f9453d32ce/storage_v2/_src_/database/app.IXoBAA/schema/public.abK9xQ.meta" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/dataSources/50b892eb-4352-4768-bad5-9e0f5f45a777.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/dataSources/50b892eb-4352-4768-bad5-9e0f5f45a777/storage_v2/_src_/database/app.IXoBAA.meta" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/dataSources/50b892eb-4352-4768-bad5-9e0f5f45a777/storage_v2/_src_/database/app.IXoBAA/schema/information_schema.FNRwLQ.meta" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/dataSources/50b892eb-4352-4768-bad5-9e0f5f45a777/storage_v2/_src_/database/app.IXoBAA/schema/pg_catalog.0S1ZNQ.meta" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/dataSources/50b892eb-4352-4768-bad5-9e0f5f45a777/storage_v2/_src_/database/app.IXoBAA/schema/public.abK9xQ.meta" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/dataSources/87d4b7bc-4ee5-4c45-adde-33618e8c5590.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/dataSources/87d4b7bc-4ee5-4c45-adde-33618e8c5590/storage_v2/_src_/database/postgres.edMnLQ.meta" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/dataSources/87d4b7bc-4ee5-4c45-adde-33618e8c5590/storage_v2/_src_/database/postgres.edMnLQ/schema/information_schema.FNRwLQ.meta" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/dataSources/87d4b7bc-4ee5-4c45-adde-33618e8c5590/storage_v2/_src_/database/postgres.edMnLQ/schema/pg_catalog.0S1ZNQ.meta" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/dataSources/87d4b7bc-4ee5-4c45-adde-33618e8c5590/storage_v2/_src_/database/postgres.edMnLQ/schema/public.abK9xQ.meta" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/jsLibraryMappings.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/php.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/vcs.xml" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/client/src/components/Navbar.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/client/src/components/Navbar.jsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/client/src/pages/Room.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/client/src/pages/Room.jsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/server/controllers/tts.js" beforeDir="false" afterPath="$PROJECT_DIR$/server/controllers/tts.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/server/package-lock.json" beforeDir="false" afterPath="$PROJECT_DIR$/server/package-lock.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/server/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/server/package.json" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/server/server.js" beforeDir="false" afterPath="$PROJECT_DIR$/server/server.js" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
