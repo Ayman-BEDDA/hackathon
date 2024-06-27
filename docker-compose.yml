@@ -24,6 +24,11 @@ services:
       - ./server:/usr/src/app
     command: npm run dev
 
+  flask_service:
+    build: ./flask_service
+    ports:
+      - 5000:5000
+
 volumes:
   db-data: {}
   pg-data: {}
