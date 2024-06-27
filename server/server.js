@@ -2,6 +2,7 @@ require("dotenv").config();
 const express = require("express");
 const http = require('http');
 const multer = require('multer');
+const fs = require('fs');
 const FormData = require('form-data');
 const UserRouter = require("./routes/user");
 const RoomRouter = require("./routes/room");

@@ -4,7 +4,7 @@ import { faMicrophone, faMicrophoneSlash, faCamera } from '@fortawesome/free-sol
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import axios from 'axios';
 import io from 'socket.io-client';
-import {  jwtDecode  } from 'jwt-decode';
+import {jwtDecode} from 'jwt-decode';
 import video from '../assets/speak.mp4';
 import Webcam from 'react-webcam';
 
@@ -27,6 +27,7 @@ function Room() {
     const webcamRef = useRef(null);
     const [imageSrc, setImageSrc] = useState(null);
     const [cameraEnabled, setCameraEnabled] = useState(false);
+    const messagesEndRef = useRef(null);
 
     useEffect(() => {
         const verifierSalle = async () => {
@@ -123,6 +124,12 @@ function Room() {
         };
     }, []);
 
+    useEffect(() => {
+        if (messagesEndRef.current) {
+            messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
+        }
+    }, [messages]);
+
     const handleVideoEnded = () => {
         if (videoRef.current) {
             videoRef.current.pause();
@@ -156,7 +163,7 @@ function Room() {
     const capture = () => {
         const imageSrc = webcamRef.current.getScreenshot();
         setImageSrc(imageSrc);
-    
+
         // Convert data URL to Blob
         fetch(imageSrc)
             .then(res => res.blob())
@@ -170,13 +177,13 @@ function Room() {
         try {
             const formData = new FormData();
             formData.append('image', image);
-    
+
             const response = await axios.post('http://localhost:3001/upload-image', formData, {
                 headers: {
                     'Content-Type': 'multipart/form-data'
                 }
             });
-    
+
             const aiResponse = response.data.response;
             setMessages(prevMessages => [...prevMessages, { role: 'assistant', content: aiResponse }]);
         } catch (error) {
@@ -220,7 +227,7 @@ function Room() {
 
     return (
         <div className="bg-orange-50 flex flex-col items-center p-4">
-            <header className="mb-8 w-full flex items-center justify-between">
+            <header className="mb-8 w-full flex items-center justify-between bg-white p-4 shadow-md rounded-lg">
                 <div className="flex flex-col">
                     <p className="text-sm font-bold text-orange-600">Salle ID : {room?.id}</p>
                     <p className="text-sm font-bold text-orange-600">Patient : <span className="text-orange-600">{user.name} {user.surname}</span></p>
@@ -229,71 +236,69 @@ function Room() {
                     Quitter la salle
                 </button>
             </header>
-            <div className="flex items-center w-full justify-center flex-col">
-                <div className="flex flex-col items-center mb-12">
-                    <p className="text-md text-gray-800 mb-4">
-                        {streaming ? 'Une fois que vous avez terminé de parler, appuyez sur le bouton ci-dessous pour couper le micro' : 'Cliquez sur le bouton ci-dessous pour commencer à parler.'}
-                    </p>
-                    <button
-                        className={`bg-orange-500 text-white px-8 py-4 rounded-full shadow-md transition duration-300 flex items-center ${streaming ? 'bg-red-500 hover:bg-red-600' : 'hover:bg-orange-600'} animate-pulse`}
-                        onClick={toggleStreaming}
-                    >
-                        <FontAwesomeIcon icon={streaming ? faMicrophone : faMicrophoneSlash} className="mr-2" />
-                    </button>
-                </div>
-                <div className="mt-8 w-full max-w-lg mx-auto p-4 bg-white rounded shadow-md overflow-y-auto">
-                    <h2 className="text-lg font-bold text-orange-600">Messages</h2>
-                    <ul className="mt-4">
-                        {messages.map((message, index) => (
-                            <li key={index} className="mb-2">
-                                <div className={`p-2 rounded ${message.role === 'user' ? 'bg-gray-200 text-black-700' : 'bg-orange-400 text-white'}`}>
-                                    {message.content}
-                                </div>
-                            </li>
-                        ))}
-                    </ul>
-
-                    {audioUrl && (
-                        <audio src={audioUrl} controls className="mt-4" />
-                    )}
-                </div>
-                <div className="mt-8 w-full max-w-lg mx-auto p-4 bg-white rounded shadow-md overflow-y-auto">
-                    <h2 className="text-lg font-bold text-orange-600">Prendre une photo</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 w-full max-w-6xl">
+                <div className="flex flex-col items-center bg-white p-4 rounded-lg shadow-md">
                     {cameraEnabled ? (
                         <Webcam
                             audio={false}
                             ref={webcamRef}
                             screenshotFormat="image/jpeg"
-                            className="w-full rounded"
+                            className="w-full rounded mt-4"
                         />
                     ) : (
-                        <p className="text-gray-500">La caméra est désactivée.</p>
-                    )}
-                    <button
-                        className="bg-blue-500 text-white px-4 py-2 rounded-full shadow-md transition duration-300 hover:bg-blue-600 mt-4"
-                        onClick={toggleCamera}
-                    >
-                        <FontAwesomeIcon icon={cameraEnabled ? faCamera : faCamera} className="mr-2" />
-                        {cameraEnabled ? 'Désactiver la caméra' : 'Activer la caméra'}
-                    </button>
-                    {cameraEnabled && (
-                        <button
-                            className="bg-green-500 text-white px-4 py-2 rounded-full shadow-md transition duration-300 hover:bg-green-600 mt-4"
-                            onClick={capture}
-                        >
-                            <FontAwesomeIcon icon={faCamera} className="mr-2" /> Capturer
-                        </button>
+                        <div className="w-full max-w-lg mx-auto">
+                            <video ref={videoRef} src={video} className="w-full rounded-lg"/>
+                        </div>
                     )}
                     {imageSrc && cameraEnabled && (
-                        <img src={imageSrc} alt="Captured" className="mt-4 rounded" />
+                        <img src={imageSrc} alt="Captured" className="mt-4 rounded-lg" />
                     )}
+                    <div className="flex items-center mt-8 gap-4">
+                        <button
+                            className={`bg-orange-500 text-white px-8 py-4 rounded-full shadow-md transition duration-300 flex items-center ${streaming ? 'bg-red-500 hover:bg-red-600' : 'hover:bg-orange-600'} animate-pulse`}
+                            onClick={toggleStreaming}
+                        >
+                            <FontAwesomeIcon icon={streaming ? faMicrophone : faMicrophoneSlash} className="mr-2" />
+                        </button>
+                        <button
+                            className="bg-orange-500 text-white px-4 py-2 rounded-full shadow-md transition duration-300 hover:bg-orange-600"
+                            onClick={toggleCamera}
+                        >
+                            <FontAwesomeIcon icon={cameraEnabled ? faCamera : faCamera} className="mr-2" />
+                            {cameraEnabled ? 'Désactiver la caméra' : 'Activer la caméra'}
+                        </button>
+                        {cameraEnabled && (
+                            <button
+                                className="bg-green-500 text-white px-4 py-4 rounded-full shadow-md transition duration-300 hover:bg-green-600"
+                                onClick={capture}
+                            >
+                                <FontAwesomeIcon icon={faCamera} className="mr-2" /> Capturer
+                            </button>
+                        )}
+                    </div>
                 </div>
-            </div>
-            <div className="mt-8 w-full max-w-lg mx-auto">
-                <video ref={videoRef} src={video} className="w-full"/>
+                <div className="bg-white p-4 rounded-lg shadow-md h-full">
+                    <h2 className="text-lg font-bold text-orange-600 mb-4">Messages</h2>
+                    {messages.length === 0 ? (
+                        <p className="text-gray-500">Aucun message</p>
+                    ) : (
+                        <ul className="space-y-2 overflow-auto max-h-96">
+                            {messages.map((message, index) => (
+                                <li key={index} className={`p-2 rounded ${message.role === 'user' ? 'bg-gray-200 text-black' : 'bg-orange-400 text-white'}`}>
+                                    {message.content}
+                                </li>
+                            ))}
+                        </ul>
+                    )}
+                    {audioUrl && (
+                        <audio src={audioUrl} controls className="mt-4 w-full rounded" />
+                    )}
+                    <div ref={messagesEndRef} />
+                </div>
             </div>
         </div>
     );
+    
 }
 
 export default Room;
