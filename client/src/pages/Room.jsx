@@ -4,7 +4,7 @@ import { faMicrophone, faMicrophoneSlash } from '@fortawesome/free-solid-svg-ico
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import axios from 'axios';
 import io from 'socket.io-client';
-import {jwtDecode} from 'jwt-decode';
+import { jwtDecode } from 'jwt-decode';
 import video from '../assets/speak.mp4';
 
 const socket = io('http://localhost:3001');
@@ -100,11 +100,30 @@ function Room() {
 
     useEffect(() => {
         socket.on('transcriptionResult', (transcription) => {
-            console.log('Transcription:', transcription);
             setTranscriptions(prevTranscriptions => [...prevTranscriptions, transcription]);
             setMessages(prevMessages => [...prevMessages, { role: 'user', content: transcription }]);
         });
     }, []);
+
+    useEffect(() => {
+        const videoElement = videoRef.current;
+
+        if (videoElement) {
+            videoElement.addEventListener('ended', handleVideoEnded);
+        }
+
+        return () => {
+            if (videoElement) {
+                videoElement.removeEventListener('ended', handleVideoEnded);
+            }
+        };
+    }, []);
+
+    const handleVideoEnded = () => {
+        if (videoRef.current) {
+            videoRef.current.pause();
+        }
+    };
 
     const leaveRoom = async () => {
         try {
@@ -140,25 +159,20 @@ function Room() {
 
             await audio.play();
 
-            // Play the video when the audio starts
             if (videoRef.current) {
                 videoRef.current.play();
             }
 
             audio.onended = () => {
-                // Pause the video when the audio ends
                 if (videoRef.current) {
                     videoRef.current.pause();
                 }
-            };
 
-            setAudioUrl(url);
-
-            audio.onended = () => {
                 const recognition = recognitionRef.current;
                 recognition.start();
                 setStreaming(true);
             };
+            setAudioUrl(url);
         } catch (error) {
             console.error('Error getting vocal response:', error);
             setAudioUrl(null);
@@ -188,7 +202,6 @@ function Room() {
                         <FontAwesomeIcon icon={streaming ? faMicrophone : faMicrophoneSlash} className="mr-2" />
                     </button>
                 </div>
-                {transcriptions.length > 0 && (
                 <div className="mt-8 w-full max-w-lg mx-auto p-4 bg-white rounded shadow-md overflow-y-auto">
                     <h2 className="text-lg font-bold text-orange-600">Messages</h2>
                     <ul className="mt-4">
@@ -205,10 +218,9 @@ function Room() {
                         <audio src={audioUrl} controls className="mt-4" />
                     )}
                 </div>
-                <div className="mt-8 w-full max-w-lg mx-auto">
-                    <video ref={videoRef} src={ video } className="w-full" />
-                </div>
-                )}
+            </div>
+            <div className="mt-8 w-full max-w-lg mx-auto">
+                <video ref={videoRef} src={video} className="w-full"/>
             </div>
         </div>
     );
