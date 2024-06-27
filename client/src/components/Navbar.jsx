@@ -25,7 +25,7 @@ const Navbar = () => {
             <div className="container mx-auto flex justify-between items-center">
                 <Link to={"/"}>
                     <div className="text-orange-500 font-bold text-xl">
-                        CalmedicaCare+
+                        CalmediCare+
                     </div>
                 </Link>
                 {user ? (

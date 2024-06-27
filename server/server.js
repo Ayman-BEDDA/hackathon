@@ -47,26 +47,46 @@ app.use("/", ttsRoutes);
 
 app.post('/upload-image', upload.single('image'), async (req, res) => {
     try {
+        if (!req.file) {
+            return res.status(400).json({ error: 'No file uploaded' });
+        }
+
         const imagePath = req.file.path;
 
-        const formData = new FormData();
-        formData.append('image', fs.createReadStream(imagePath));
-
-        const response = await axios.post('https://api.openai.com/v1/images', formData, {
-            headers: {
-                'Authorization': `Bearer ${OPENAI_API_KEY}`,
-                ...formData.getHeaders(),
-            },
+        const response = await openai.chat.completions.create({
+            model: "gpt-4-turbo",
+            messages: [
+                {
+                    role: "system",
+                    content: "Tu es un assistant médical virtuel capable de fournir des conseils basés sur l'analyse d'images médicales."
+                },
+                {
+                  role: "user",
+                  content: [
+                    { type: "text", text: "Bonjour, je voudrais des conseils médicaux basés sur l'image suivante." },
+                    {
+                      type: "image_url",
+                      image_url: {
+                        "url": `data:image/jpeg;base64,${fs.readFileSync(imagePath).toString('base64')}`,
+                      },
+                    },
+                  ],
+                },
+              ],
         });
 
-        const aiResponse = response.data.description;
+        const description = response.choices[0].message.content;
 
-        fs.unlinkSync(imagePath);
-
-        res.json({ response: aiResponse });
+        console.log('Image description:', description);
+        
+        res.json({ response: description });
     } catch (error) {
-        console.error('Error uploading image:', error);
+        console.error('Error during image description:', error);
         res.status(500).json({ error: 'Internal server error' });
+    } finally {
+        if (req.file && fs.existsSync (req.file.path)) {
+            fs.unlinkSync(req.file.path);
+        }
     }
 });
 

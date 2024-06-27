@@ -53,8 +53,8 @@ function Home() {
     <div className="bg-orange-50 flex flex-col items-center justify-center pt-16">
       <header className="text-center mb-8">
         <main className="flex flex-col items-center mb-20">
-          <img src={mainIcon} alt="CalMedicaCare" className="w-40 h-40 mx-auto mb-4" />
-          <h1 className="text-4xl font-bold text-orange-500">CalmedicaCare+</h1>
+          <img src={mainIcon} alt="CalMediCare" className="w-40 h-40 mx-auto mb-4" />
+          <h1 className="text-4xl font-bold text-orange-500">CalmediCare+</h1>
         </main>
         {user && (
           <p className="text-xl text-black-700 flex">

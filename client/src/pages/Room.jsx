@@ -22,6 +22,7 @@ function Room() {
     const [transcriptions, setTranscriptions] = useState([]);
     const webcamRef = useRef(null);
     const [imageSrc, setImageSrc] = useState(null);
+    const [cameraEnabled, setCameraEnabled] = useState(false);
 
     useEffect(() => {
         const verifierSalle = async () => {
@@ -130,12 +131,27 @@ function Room() {
     const capture = () => {
         const imageSrc = webcamRef.current.getScreenshot();
         setImageSrc(imageSrc);
-        uploadImage(imageSrc);
+    
+        // Convert data URL to Blob
+        fetch(imageSrc)
+            .then(res => res.blob())
+            .then(blob => {
+                const file = new File([blob], 'captured-image.jpg', { type: 'image/jpeg' });
+                uploadImage(file);
+            });
     };
 
     const uploadImage = async (image) => {
         try {
-            const response = await axios.post('http://localhost:3001/upload-image', { image });
+            const formData = new FormData();
+            formData.append('image', image);
+    
+            const response = await axios.post('http://localhost:3001/upload-image', formData, {
+                headers: {
+                    'Content-Type': 'multipart/form-data'
+                }
+            });
+    
             const aiResponse = response.data.response;
             setMessages(prevMessages => [...prevMessages, { role: 'assistant', content: aiResponse }]);
         } catch (error) {
@@ -157,6 +173,10 @@ function Room() {
             console.error('Error getting vocal response:', error);
             setAudioUrl(null);
         }
+    };
+
+    const toggleCamera = () => {
+        setCameraEnabled(!cameraEnabled);
     };
 
     return (
@@ -200,19 +220,32 @@ function Room() {
                 </div>
                 <div className="mt-8 w-full max-w-lg mx-auto p-4 bg-white rounded shadow-md overflow-y-auto">
                     <h2 className="text-lg font-bold text-orange-600">Prendre une photo</h2>
-                    <Webcam
-                        audio={false}
-                        ref={webcamRef}
-                        screenshotFormat="image/jpeg"
-                        className="w-full rounded"
-                    />
+                    {cameraEnabled ? (
+                        <Webcam
+                            audio={false}
+                            ref={webcamRef}
+                            screenshotFormat="image/jpeg"
+                            className="w-full rounded"
+                        />
+                    ) : (
+                        <p className="text-gray-500">La caméra est désactivée.</p>
+                    )}
                     <button
                         className="bg-blue-500 text-white px-4 py-2 rounded-full shadow-md transition duration-300 hover:bg-blue-600 mt-4"
-                        onClick={capture}
+                        onClick={toggleCamera}
                     >
-                        <FontAwesomeIcon icon={faCamera} className="mr-2" /> Capturer
+                        <FontAwesomeIcon icon={cameraEnabled ? faCamera : faCamera} className="mr-2" />
+                        {cameraEnabled ? 'Désactiver la caméra' : 'Activer la caméra'}
                     </button>
-                    {imageSrc && (
+                    {cameraEnabled && (
+                        <button
+                            className="bg-green-500 text-white px-4 py-2 rounded-full shadow-md transition duration-300 hover:bg-green-600 mt-4"
+                            onClick={capture}
+                        >
+                            <FontAwesomeIcon icon={faCamera} className="mr-2" /> Capturer
+                        </button>
+                    )}
+                    {imageSrc && cameraEnabled && (
                         <img src={imageSrc} alt="Captured" className="mt-4 rounded" />
                     )}
                 </div>
