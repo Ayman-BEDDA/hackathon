@@ -1,20 +1,18 @@
 import React, { useEffect, useState } from 'react';
 import {Link, useNavigate} from "react-router-dom";
-import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
-import {faMicrophone} from "@fortawesome/free-solid-svg-icons";
 
 const Navbar = () => {
 
     const navigate = useNavigate();
     const [user, setUser] = useState(null);
+    const token = localStorage.getItem('token');
 
     useEffect(() => {
-        const token = localStorage.getItem('token');
         if (token) {
             setUser(token);
         }
     }
-    , []);
+    , [token]);
 
     const handleLogout = () => {
         localStorage.removeItem('token');
@@ -22,10 +20,8 @@ const Navbar = () => {
         navigate('/');
     }
 
-
-
     return (
-        <nav className="bg-white p-4 shadow-md w-full z-10 shadow-md fixed top-0">
+        <nav className="bg-white p-4 w-full z-10 shadow-md fixed top-0">
             <div className="container mx-auto flex justify-between items-center">
                 <Link to={"/"}>
                     <div className="text-orange-500 font-bold text-xl">
@@ -50,11 +46,6 @@ const Navbar = () => {
                                 Se connecter
                             </button>
                         </Link>
-                    <Link to="response-vocal">
-                        <button className="bg-white text-orange-500 font-semibold py-2 px-4 rounded">
-                            <FontAwesomeIcon icon={faMicrophone}/>
-                        </button>
-                    </Link>
                     </div>
                 )}
             </div>
