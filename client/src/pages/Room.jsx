@@ -4,7 +4,8 @@ import { faMicrophone, faMicrophoneSlash } from '@fortawesome/free-solid-svg-ico
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import axios from 'axios';
 import io from 'socket.io-client';
-import { jwtDecode } from 'jwt-decode';
+import {jwtDecode} from 'jwt-decode';
+import video from '../assets/speak.mp4';
 
 const socket = io('http://localhost:3001');
 
@@ -15,6 +16,9 @@ function Room() {
     const { id: roomId } = useParams();
     const [streaming, setStreaming] = useState(location.state?.isMicrophoneOn || false);
     const [room, setRoom] = useState(null);
+    const mediaRecorderRef = useRef(null);
+    const audioChunksRef = useRef([]);
+    const videoRef = useRef(null);
     const [messages, setMessages] = useState([]);
     const [audioUrl, setAudioUrl] = useState(null);
     const [transcriptions, setTranscriptions] = useState([]);
@@ -131,10 +135,22 @@ function Room() {
         try {
             const response = await axios.post('http://localhost:3001/response-vocal', { text: message }, { responseType: 'blob' });
             const url = window.URL.createObjectURL(new Blob([response.data], { type: 'audio/wav' }));
-            console.log('Audio URL:', url);
+
             const audio = new Audio(url);
-            
+
             await audio.play();
+
+            // Play the video when the audio starts
+            if (videoRef.current) {
+                videoRef.current.play();
+            }
+
+            audio.onended = () => {
+                // Pause the video when the audio ends
+                if (videoRef.current) {
+                    videoRef.current.pause();
+                }
+            };
 
             setAudioUrl(url);
 
@@ -178,7 +194,7 @@ function Room() {
                     <ul className="mt-4">
                         {messages.map((message, index) => (
                             <li key={index} className="mb-2">
-                                <div className={`p-2 rounded ${message.role === 'user' ? 'bg-white-400 text-black-700' : 'bg-orange-400 text-white'}`}>
+                                <div className={`p-2 rounded ${message.role === 'user' ? 'bg-gray-200 text-black-700' : 'bg-orange-400 text-white'}`}>
                                     {message.content}
                                 </div>
                             </li>
@@ -188,6 +204,9 @@ function Room() {
                     {audioUrl && (
                         <audio src={audioUrl} controls className="mt-4" />
                     )}
+                </div>
+                <div className="mt-8 w-full max-w-lg mx-auto">
+                    <video ref={videoRef} src={ video } className="w-full" />
                 </div>
                 )}
             </div>
