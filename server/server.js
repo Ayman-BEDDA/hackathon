@@ -79,6 +79,8 @@ app.post("/response/:roomId", async (req, res) => {
                     - Mission: Révolutionner le rapport entre le patient et le système de soin, faire gagner du temps aux personnels de santé.
                     - Produit: Plateforme de télésuivi multi-pathologies, agent conversationnel fonctionnant par SMS.
                     - Chiffres clés: 20 millions de patients suivis, 150 établissements équipés, 500 parcours patients.
+
+                    Réponds uniquement et seulement en français.
                 `
             }
         ];
@@ -97,7 +99,6 @@ app.post("/response/:roomId", async (req, res) => {
 
         const responseMessage = result.data.choices[0].message.content;
 
-        // Ajouter la réponse de l'assistant à la conversation
         conversations[roomId].push({
             role: "assistant",
             content: responseMessage
@@ -147,7 +148,7 @@ const getChatResponse = async (message) => {
         const response = await openai.chat.completions.create({
             model: "gpt-3.5-turbo",
             messages: [
-                { role: "system", content: "You are a medical assistant." },
+                { role: "system", content: "Tu es un assistant médical virtuel. Tu dois répondre aux questions des patients et leur fournir des informations utiles." },
                 { role: "user", content: message }
             ],
         });

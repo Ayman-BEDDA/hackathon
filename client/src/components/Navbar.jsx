@@ -6,16 +6,15 @@ import {faMicrophone} from "@fortawesome/free-solid-svg-icons";
 const Navbar = () => {
 
     const navigate = useNavigate();
+    const [user, setUser] = useState(null);
 
-   useEffect(() => {
-         const token = localStorage.getItem('token');
-         if (token) {
-              setUser(token);
-         }
+    useEffect(() => {
+        const token = localStorage.getItem('token');
+        if (token) {
+            setUser(token);
+        }
     }
     , []);
-
-    const [user, setUser] = useState(null);
 
     const handleLogout = () => {
         localStorage.removeItem('token');

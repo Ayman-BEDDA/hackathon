@@ -18,7 +18,7 @@ function Room() {
     const audioChunksRef = useRef([]);
     const [messages, setMessages] = useState([]);
     const [audioUrl, setAudioUrl] = useState(null);
-    const [transcriptions, setTranscriptions] = useState([]); // State for user transcriptions
+    const [transcriptions, setTranscriptions] = useState([]);
 
     useEffect(() => {
         const verifierSalle = async () => {
@@ -129,6 +129,10 @@ function Room() {
         try {
             const response = await axios.post('http://localhost:3001/response-vocal', { text: message }, { responseType: 'blob' });
             const url = window.URL.createObjectURL(new Blob([response.data], { type: 'audio/wav' }));
+            
+            const audio = new Audio(url);
+            audio.play();
+
             setAudioUrl(url);
         } catch (error) {
             console.error('Error getting vocal response:', error);
