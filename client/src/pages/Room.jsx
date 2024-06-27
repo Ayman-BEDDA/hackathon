@@ -1,10 +1,11 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faMicrophone, faMicrophoneSlash, faCamera } from '@fortawesome/free-solid-svg-icons';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import axios from 'axios';
 import io from 'socket.io-client';
-import { jwtDecode } from 'jwt-decode';
+import {  jwtDecode  } from 'jwt-decode';
+import video from '../assets/speak.mp4';
 import Webcam from 'react-webcam';
 
 const socket = io('http://localhost:3001');
@@ -12,14 +13,17 @@ const socket = io('http://localhost:3001');
 function Room() {
     const user = jwtDecode(localStorage.getItem('token'));
     const navigate = useNavigate();
+    const location = useLocation();
     const { id: roomId } = useParams();
-    const [streaming, setStreaming] = useState(false);
+    const [streaming, setStreaming] = useState(location.state?.isMicrophoneOn || false);
     const [room, setRoom] = useState(null);
     const mediaRecorderRef = useRef(null);
     const audioChunksRef = useRef([]);
+    const videoRef = useRef(null);
     const [messages, setMessages] = useState([]);
     const [audioUrl, setAudioUrl] = useState(null);
     const [transcriptions, setTranscriptions] = useState([]);
+    const recognitionRef = useRef(null);
     const webcamRef = useRef(null);
     const [imageSrc, setImageSrc] = useState(null);
     const [cameraEnabled, setCameraEnabled] = useState(false);
@@ -49,27 +53,43 @@ function Room() {
     }, [roomId, navigate]);
 
     useEffect(() => {
-        navigator.mediaDevices.getUserMedia({ audio: true })
-            .then(stream => {
-                const recorder = new MediaRecorder(stream, { mimeType: 'audio/webm; codecs=opus' });
-                mediaRecorderRef.current = recorder;
+        if (!('webkitSpeechRecognition' in window)) {
+            console.error("Web Speech API not supported in this browser.");
+        } else {
+            const recognition = new window.webkitSpeechRecognition();
+            recognition.lang = 'fr-FR';
+            recognition.continuous = true;
+            recognition.interimResults = false;
 
-                recorder.ondataavailable = (e) => {
-                    if (e.data.size > 0) {
-                        audioChunksRef.current.push(e.data);
+            recognition.onresult = (event) => {
+                let finalTranscript = '';
+                for (let i = event.resultIndex; i < event.results.length; ++i) {
+                    if (event.results[i].isFinal) {
+                        finalTranscript += event.results[i][0].transcript;
                     }
-                };
-            })
-            .catch(error => {
-                console.error("Error accessing the microphone: ", error);
-            });
+                }
+                if (finalTranscript) {
+                    recognition.stop();
+                    socket.emit('audioMessage', finalTranscript);
+                    setMessages((prevMessages) => [
+                        ...prevMessages,
+                        { role: 'user', content: finalTranscript }
+                    ]);
+                }
+            };
 
-        return () => {
-            if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
-                mediaRecorderRef.current.stop();
+            recognition.onerror = (event) => {
+                console.error('Recognition error:', event.error);
+            };
+
+            recognitionRef.current = recognition;
+
+            // Start recognition if streaming is initially true
+            if (streaming) {
+                recognition.start();
             }
-        };
-    }, []);
+        }
+    }, [streaming]);
 
     useEffect(() => {
         socket.on('chatResponse', (response) => {
@@ -84,11 +104,30 @@ function Room() {
 
     useEffect(() => {
         socket.on('transcriptionResult', (transcription) => {
-            console.log('Transcription:', transcription);
             setTranscriptions(prevTranscriptions => [...prevTranscriptions, transcription]);
             setMessages(prevMessages => [...prevMessages, { role: 'user', content: transcription }]);
         });
     }, []);
+
+    useEffect(() => {
+        const videoElement = videoRef.current;
+
+        if (videoElement) {
+            videoElement.addEventListener('ended', handleVideoEnded);
+        }
+
+        return () => {
+            if (videoElement) {
+                videoElement.removeEventListener('ended', handleVideoEnded);
+            }
+        };
+    }, []);
+
+    const handleVideoEnded = () => {
+        if (videoRef.current) {
+            videoRef.current.pause();
+        }
+    };
 
     const leaveRoom = async () => {
         try {
@@ -105,27 +144,13 @@ function Room() {
     };
 
     const toggleStreaming = () => {
-        const recorder = mediaRecorderRef.current;
+        const recognition = recognitionRef.current;
         if (!streaming) {
-            if (recorder) {
-                audioChunksRef.current = [];
-                recorder.start();
-                setStreaming(true);
-            }
+            recognition.start();
         } else {
-            if (recorder) {
-                recorder.stop();
-                recorder.onstop = () => {
-                    const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm; codecs=opus' });
-                    const reader = new FileReader();
-                    reader.onloadend = () => {
-                        socket.emit('audioMessage', reader.result);
-                    };
-                    reader.readAsArrayBuffer(audioBlob);
-                };
-                setStreaming(false);
-            }
+            recognition.stop();
         }
+        setStreaming(!streaming);
     };
 
     const capture = () => {
@@ -166,8 +191,22 @@ function Room() {
             const url = window.URL.createObjectURL(new Blob([response.data], { type: 'audio/wav' }));
 
             const audio = new Audio(url);
-            audio.play();
 
+            await audio.play();
+
+            if (videoRef.current) {
+                videoRef.current.play();
+            }
+
+            audio.onended = () => {
+                if (videoRef.current) {
+                    videoRef.current.pause();
+                }
+
+                const recognition = recognitionRef.current;
+                recognition.start();
+                setStreaming(true);
+            };
             setAudioUrl(url);
         } catch (error) {
             console.error('Error getting vocal response:', error);
@@ -207,7 +246,7 @@ function Room() {
                     <ul className="mt-4">
                         {messages.map((message, index) => (
                             <li key={index} className="mb-2">
-                                <div className={`p-2 rounded ${message.role === 'user' ? 'bg-white-400 text-black-700' : 'bg-orange-400 text-white'}`}>
+                                <div className={`p-2 rounded ${message.role === 'user' ? 'bg-gray-200 text-black-700' : 'bg-orange-400 text-white'}`}>
                                     {message.content}
                                 </div>
                             </li>
@@ -249,6 +288,9 @@ function Room() {
                         <img src={imageSrc} alt="Captured" className="mt-4 rounded" />
                     )}
                 </div>
+            </div>
+            <div className="mt-8 w-full max-w-lg mx-auto">
+                <video ref={videoRef} src={video} className="w-full"/>
             </div>
         </div>
     );

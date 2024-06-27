@@ -1,12 +1,13 @@
 const path = require('path');
 const fs = require('fs');
 const OpenAI = require('openai');
+const uuid = require('uuid');
 
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
 
 const openai = new OpenAI(OPENAI_API_KEY);
 
-const speechFile = path.resolve("./audio_files/speech.mp3");
+const speechFile = path.resolve("./audio_files", `${uuid.v4()}.mp3`);
 
 const TtsController = {
     speak: async (req, res) => {
@@ -15,6 +16,8 @@ const TtsController = {
         if (!text) {
             return res.status(400).json({ error: 'Text is required' });
         }
+
+        console.log('Text to synthesize:', text);
 
         try {
             const mp3 = await openai.audio.speech.create({

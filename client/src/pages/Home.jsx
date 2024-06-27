@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, {useEffect, useState} from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faMicrophone } from '@fortawesome/free-solid-svg-icons';
 import mainIcon from '../assets/chatbot.png';
@@ -42,7 +42,7 @@ function Home() {
       })
         .then(response => response.json())
         .then(data => {
-          navigate(`/room/${data.id}`);
+          navigate(`/waiting-room/${data.id}`);
         });
     } catch (error) {
       console.error('Error:', error);
