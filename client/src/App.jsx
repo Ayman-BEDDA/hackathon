@@ -6,6 +6,7 @@ import Register from "./pages/Register";
 import Login from "./pages/Login";
 import Room from "./pages/Room";
 import TextToSpeech from "./components/TextToSpeech";
+import WaitingRoom from './pages/WaitingRoom';
 
 function App() {
   return (
@@ -17,6 +18,7 @@ function App() {
                       <Route path="/" element={<Home/>}/>
                       <Route path="/register" element={<Register/>}/>
                       <Route path="/login" element={<Login/>}/>
+                      <Route path="/waiting-room/:id" element={<WaitingRoom/>}/>
                       <Route path="/room/:id" element={<Room/>}/>
                       <Route path="/logout" element={<Navigate to="/" replace />} />
                       <Route path="*" element={<Navigate to="/" replace/>}/>

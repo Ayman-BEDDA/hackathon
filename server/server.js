@@ -1,24 +1,18 @@
 require("dotenv").config();
 const express = require("express");
 const http = require('http');
-const FormData = require('form-data');
 const UserRouter = require("./routes/user");
 const RoomRouter = require("./routes/room");
+const ttsRoutes = require("./routes/tts");
 const SecurityRouter = require("./routes/security");
 const cors = require("cors");
 const checkFormat = require("./middlewares/check-format");
 const errorHandler = require("./middlewares/error-handler");
 const bodyParser = require("body-parser");
 const sequelize = require('./db/db');
-const fs = require('fs');
-const { join } = require('path');
-const { v4: uuidv4 } = require('uuid');
-const ttsRoutes = require('./routes/tts');
-const axios = require('axios');
 const OpenAI = require('openai');
 
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
-
 const openai = new OpenAI(OPENAI_API_KEY);
 
 const conversations = {};
@@ -113,96 +107,33 @@ app.post("/response/:roomId", async (req, res) => {
     }
 });
 
-
 app.use(errorHandler);
 
 const server = http.createServer(app);
 const io = require('socket.io')(server, { cors: { origin: "*" } });
 
-const transcribeAudio = async (audioFilePath) => {
-    const form = new FormData();
-    form.append('file', fs.createReadStream(audioFilePath));
-    form.append('model', 'whisper-1');
-
-    try {
-        const response = await axios.post(
-            'https://api.openai.com/v1/audio/transcriptions',
-            form,
-            {
-                headers: {
-                    'Authorization': `Bearer ${OPENAI_API_KEY}`,
-                    ...form.getHeaders()
-                }
-            }
-        );
-
-        return response.data.text;
-    } catch (error) {
-        console.error('Error during transcription:', error.response ? error.response.data : error.message);
-        throw error;
-    }
-};
-
-const getChatResponse = async (message) => {
-    try {
-        const response = await openai.chat.completions.create({
-            model: "gpt-3.5-turbo",
-            messages: [
-                { role: "system", content: "Tu es un assistant médical virtuel. Tu dois répondre aux questions des patients et leur fournir des informations utiles." },
-                { role: "user", content: message }
-            ],
-        });
-
-        return response.choices[0].message.content;
-    } catch (error) {
-        console.error('Error during chat response:', error.response ? error.response.data : error.message);
-        throw error;
-    }
-};
-
 io.on('connection', (socket) => {
     console.log('A user connected');
 
-    socket.on('audioMessage', async (audioData) => {
-        console.log('Audio data received');
-        const audioBuffer = Buffer.from(audioData);
-        console.log(`Received audio data size: ${audioBuffer.length} bytes`);
-
-        const localDirectory = './audio_files';
-        if (!fs.existsSync(localDirectory)){
-            fs.mkdirSync(localDirectory);
-        }
-
-        const audioFilePath = join(localDirectory, `${uuidv4()}.webm`);
-        console.log('Saving audio data to local file:', audioFilePath);
+    socket.on('audioMessage', async (message) => {
+        console.log('Message received:', message);
 
         try {
-            fs.writeFileSync(audioFilePath, audioBuffer);
-            console.log('Audio data successfully saved to', audioFilePath);
+            const chatResponse = await openai.chat.completions.create({
+                model: "gpt-3.5-turbo",
+                messages: [
+                    { role: "system", content: "Tu es un assistant médical virtuel. Tu dois répondre aux questions des patients et leur fournir des informations utiles." },
+                    { role: "user", content: message }
+                ],
+            });
 
-            const transcription = await transcribeAudio(audioFilePath);
-            console.log('Transcription:', transcription);
+            const responseMessage = chatResponse.choices[0].message.content;
+            console.log('Chat response:', responseMessage);
 
-            socket.emit('transcriptionResult', transcription);
-
-            const chatResponse = await getChatResponse(transcription);
-            console.log('Chat response:', chatResponse);
-
-            socket.emit('chatResponse', chatResponse);
+            socket.emit('chatResponse', responseMessage);
         } catch (error) {
-            console.error('Error saving or transcribing audio file:', error);
-            socket.emit('transcriptionError', 'Error during audio transcription.');
-
-            if (fs.existsSync(audioFilePath)) {
-                fs.unlinkSync(audioFilePath);
-                console.log('Audio file deleted:', audioFilePath);
-            }
-            
-        } finally {
-            if (fs.existsSync(audioFilePath)) {
-                fs.unlinkSync(audioFilePath);
-                console.log('Audio file deleted:', audioFilePath);
-            }
+            console.error('Error during chat response:', error);
+            socket.emit('chatResponseError', 'Error during chat response.');
         }
     });
 

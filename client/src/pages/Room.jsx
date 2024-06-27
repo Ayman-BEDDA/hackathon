@@ -1,24 +1,24 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faMicrophone, faMicrophoneSlash } from '@fortawesome/free-solid-svg-icons';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import axios from 'axios';
 import io from 'socket.io-client';
-import {jwtDecode} from 'jwt-decode';
+import { jwtDecode } from 'jwt-decode';
 
 const socket = io('http://localhost:3001');
 
 function Room() {
     const user = jwtDecode(localStorage.getItem('token'));
     const navigate = useNavigate();
+    const location = useLocation();
     const { id: roomId } = useParams();
-    const [streaming, setStreaming] = useState(false);
+    const [streaming, setStreaming] = useState(location.state?.isMicrophoneOn || false);
     const [room, setRoom] = useState(null);
-    const mediaRecorderRef = useRef(null);
-    const audioChunksRef = useRef([]);
     const [messages, setMessages] = useState([]);
     const [audioUrl, setAudioUrl] = useState(null);
     const [transcriptions, setTranscriptions] = useState([]);
+    const recognitionRef = useRef(null);
 
     useEffect(() => {
         const verifierSalle = async () => {
@@ -45,27 +45,43 @@ function Room() {
     }, [roomId, navigate]);
 
     useEffect(() => {
-        navigator.mediaDevices.getUserMedia({ audio: true })
-            .then(stream => {
-                const recorder = new MediaRecorder(stream, { mimeType: 'audio/webm; codecs=opus' });
-                mediaRecorderRef.current = recorder;
+        if (!('webkitSpeechRecognition' in window)) {
+            console.error("Web Speech API not supported in this browser.");
+        } else {
+            const recognition = new window.webkitSpeechRecognition();
+            recognition.lang = 'fr-FR';
+            recognition.continuous = true;
+            recognition.interimResults = false;
 
-                recorder.ondataavailable = (e) => {
-                    if (e.data.size > 0) {
-                        audioChunksRef.current.push(e.data);
+            recognition.onresult = (event) => {
+                let finalTranscript = '';
+                for (let i = event.resultIndex; i < event.results.length; ++i) {
+                    if (event.results[i].isFinal) {
+                        finalTranscript += event.results[i][0].transcript;
                     }
-                };
-            })
-            .catch(error => {
-                console.error("Error accessing the microphone: ", error);
-            });
+                }
+                if (finalTranscript) {
+                    recognition.stop();
+                    socket.emit('audioMessage', finalTranscript);
+                    setMessages((prevMessages) => [
+                        ...prevMessages,
+                        { role: 'user', content: finalTranscript }
+                    ]);
+                }
+            };
 
-        return () => {
-            if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
-                mediaRecorderRef.current.stop();
+            recognition.onerror = (event) => {
+                console.error('Recognition error:', event.error);
+            };
+
+            recognitionRef.current = recognition;
+
+            // Start recognition if streaming is initially true
+            if (streaming) {
+                recognition.start();
             }
-        };
-    }, []);
+        }
+    }, [streaming]);
 
     useEffect(() => {
         socket.on('chatResponse', (response) => {
@@ -101,27 +117,13 @@ function Room() {
     };
 
     const toggleStreaming = () => {
-        const recorder = mediaRecorderRef.current;
+        const recognition = recognitionRef.current;
         if (!streaming) {
-            if (recorder) {
-                audioChunksRef.current = [];
-                recorder.start();
-                setStreaming(true);
-            }
+            recognition.start();
         } else {
-            if (recorder) {
-                recorder.stop();
-                recorder.onstop = () => {
-                    const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm; codecs=opus' });
-                    const reader = new FileReader();
-                    reader.onloadend = () => {
-                        socket.emit('audioMessage', reader.result);
-                    };
-                    reader.readAsArrayBuffer(audioBlob);
-                };
-                setStreaming(false);
-            }
+            recognition.stop();
         }
+        setStreaming(!streaming);
     };
 
     const playVocalResponse = async (message) => {
@@ -129,11 +131,18 @@ function Room() {
         try {
             const response = await axios.post('http://localhost:3001/response-vocal', { text: message }, { responseType: 'blob' });
             const url = window.URL.createObjectURL(new Blob([response.data], { type: 'audio/wav' }));
-            
+            console.log('Audio URL:', url);
             const audio = new Audio(url);
-            audio.play();
+            
+            await audio.play();
 
             setAudioUrl(url);
+
+            audio.onended = () => {
+                const recognition = recognitionRef.current;
+                recognition.start();
+                setStreaming(true);
+            };
         } catch (error) {
             console.error('Error getting vocal response:', error);
             setAudioUrl(null);
@@ -144,8 +153,8 @@ function Room() {
         <div className="bg-orange-50 flex flex-col items-center p-4">
             <header className="mb-8 w-full flex items-center justify-between">
                 <div className="flex flex-col">
-                <p className="text-sm font-bold text-orange-600">Salle ID : {room?.id}</p>
-                <p className="text-sm font-bold text-orange-600">Patient : <span className="text-orange-600">{user.name} {user.surname}</span></p>
+                    <p className="text-sm font-bold text-orange-600">Salle ID : {room?.id}</p>
+                    <p className="text-sm font-bold text-orange-600">Patient : <span className="text-orange-600">{user.name} {user.surname}</span></p>
                 </div>
                 <button className="bg-orange-500 text-white px-4 py-2 rounded-full shadow-md transition duration-300 hover:bg-orange-600" onClick={leaveRoom}>
                     Quitter la salle
@@ -160,10 +169,11 @@ function Room() {
                         className={`bg-orange-500 text-white px-8 py-4 rounded-full shadow-md transition duration-300 flex items-center ${streaming ? 'bg-red-500 hover:bg-red-600' : 'hover:bg-orange-600'} animate-pulse`}
                         onClick={toggleStreaming}
                     >
-                        <FontAwesomeIcon icon={streaming ? faMicrophone: faMicrophoneSlash } className="mr-2" />
+                        <FontAwesomeIcon icon={streaming ? faMicrophone : faMicrophoneSlash} className="mr-2" />
                     </button>
                 </div>
-                <div className="mt-8 w-full max-w-lg mx-auto p-4 bg-white rounded shadow-md h-96 overflow-y-auto">
+                {transcriptions.length > 0 && (
+                <div className="mt-8 w-full max-w-lg mx-auto p-4 bg-white rounded shadow-md overflow-y-auto">
                     <h2 className="text-lg font-bold text-orange-600">Messages</h2>
                     <ul className="mt-4">
                         {messages.map((message, index) => (
@@ -179,6 +189,7 @@ function Room() {
                         <audio src={audioUrl} controls className="mt-4" />
                     )}
                 </div>
+                )}
             </div>
         </div>
     );

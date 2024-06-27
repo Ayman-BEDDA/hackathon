@@ -42,7 +42,7 @@ function Home() {
       })
         .then(response => response.json())
         .then(data => {
-          navigate(`/room/${data.id}`);
+          navigate(`/waiting-room/${data.id}`);
         });
     } catch (error) {
       console.error('Error:', error);
