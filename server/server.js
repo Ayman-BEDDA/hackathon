@@ -1,6 +1,7 @@
 require("dotenv").config();
 const express = require("express");
 const http = require('http');
+const multer = require('multer');
 const FormData = require('form-data');
 const UserRouter = require("./routes/user");
 const RoomRouter = require("./routes/room");
@@ -20,6 +21,7 @@ const OpenAI = require('openai');
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
 
 const openai = new OpenAI(OPENAI_API_KEY);
+const upload = multer({ dest: 'uploads/' });
 
 const conversations = {};
 
@@ -42,6 +44,31 @@ app.use("/", SecurityRouter);
 app.use("/users", UserRouter);
 app.use("/rooms", RoomRouter);
 app.use("/", ttsRoutes);
+
+app.post('/upload-image', upload.single('image'), async (req, res) => {
+    try {
+        const imagePath = req.file.path;
+
+        const formData = new FormData();
+        formData.append('image', fs.createReadStream(imagePath));
+
+        const response = await axios.post('https://api.openai.com/v1/images', formData, {
+            headers: {
+                'Authorization': `Bearer ${OPENAI_API_KEY}`,
+                ...formData.getHeaders(),
+            },
+        });
+
+        const aiResponse = response.data.description;
+
+        fs.unlinkSync(imagePath);
+
+        res.json({ response: aiResponse });
+    } catch (error) {
+        console.error('Error uploading image:', error);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+});
 
 app.get("/", (req, res) => {
     res.send("Hello World!");

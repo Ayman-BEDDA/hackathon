@@ -1,10 +1,11 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faMicrophone, faMicrophoneSlash } from '@fortawesome/free-solid-svg-icons';
+import { faMicrophone, faMicrophoneSlash, faCamera } from '@fortawesome/free-solid-svg-icons';
 import { useNavigate, useParams } from 'react-router-dom';
 import axios from 'axios';
 import io from 'socket.io-client';
-import {jwtDecode} from 'jwt-decode';
+import { jwtDecode } from 'jwt-decode';
+import Webcam from 'react-webcam';
 
 const socket = io('http://localhost:3001');
 
@@ -19,6 +20,8 @@ function Room() {
     const [messages, setMessages] = useState([]);
     const [audioUrl, setAudioUrl] = useState(null);
     const [transcriptions, setTranscriptions] = useState([]);
+    const webcamRef = useRef(null);
+    const [imageSrc, setImageSrc] = useState(null);
 
     useEffect(() => {
         const verifierSalle = async () => {
@@ -124,12 +127,28 @@ function Room() {
         }
     };
 
+    const capture = () => {
+        const imageSrc = webcamRef.current.getScreenshot();
+        setImageSrc(imageSrc);
+        uploadImage(imageSrc);
+    };
+
+    const uploadImage = async (image) => {
+        try {
+            const response = await axios.post('http://localhost:3001/upload-image', { image });
+            const aiResponse = response.data.response;
+            setMessages(prevMessages => [...prevMessages, { role: 'assistant', content: aiResponse }]);
+        } catch (error) {
+            console.error('Error uploading image:', error);
+        }
+    };
+
     const playVocalResponse = async (message) => {
         console.log('Playing vocal response:', message);
         try {
             const response = await axios.post('http://localhost:3001/response-vocal', { text: message }, { responseType: 'blob' });
             const url = window.URL.createObjectURL(new Blob([response.data], { type: 'audio/wav' }));
-            
+
             const audio = new Audio(url);
             audio.play();
 
@@ -144,8 +163,8 @@ function Room() {
         <div className="bg-orange-50 flex flex-col items-center p-4">
             <header className="mb-8 w-full flex items-center justify-between">
                 <div className="flex flex-col">
-                <p className="text-sm font-bold text-orange-600">Salle ID : {room?.id}</p>
-                <p className="text-sm font-bold text-orange-600">Patient : <span className="text-orange-600">{user.name} {user.surname}</span></p>
+                    <p className="text-sm font-bold text-orange-600">Salle ID : {room?.id}</p>
+                    <p className="text-sm font-bold text-orange-600">Patient : <span className="text-orange-600">{user.name} {user.surname}</span></p>
                 </div>
                 <button className="bg-orange-500 text-white px-4 py-2 rounded-full shadow-md transition duration-300 hover:bg-orange-600" onClick={leaveRoom}>
                     Quitter la salle
@@ -160,7 +179,7 @@ function Room() {
                         className={`bg-orange-500 text-white px-8 py-4 rounded-full shadow-md transition duration-300 flex items-center ${streaming ? 'bg-red-500 hover:bg-red-600' : 'hover:bg-orange-600'} animate-pulse`}
                         onClick={toggleStreaming}
                     >
-                        <FontAwesomeIcon icon={streaming ? faMicrophone: faMicrophoneSlash } className="mr-2" />
+                        <FontAwesomeIcon icon={streaming ? faMicrophone : faMicrophoneSlash} className="mr-2" />
                     </button>
                 </div>
                 <div className="mt-8 w-full max-w-lg mx-auto p-4 bg-white rounded shadow-md overflow-y-auto">
@@ -177,6 +196,24 @@ function Room() {
 
                     {audioUrl && (
                         <audio src={audioUrl} controls className="mt-4" />
+                    )}
+                </div>
+                <div className="mt-8 w-full max-w-lg mx-auto p-4 bg-white rounded shadow-md overflow-y-auto">
+                    <h2 className="text-lg font-bold text-orange-600">Prendre une photo</h2>
+                    <Webcam
+                        audio={false}
+                        ref={webcamRef}
+                        screenshotFormat="image/jpeg"
+                        className="w-full rounded"
+                    />
+                    <button
+                        className="bg-blue-500 text-white px-4 py-2 rounded-full shadow-md transition duration-300 hover:bg-blue-600 mt-4"
+                        onClick={capture}
+                    >
+                        <FontAwesomeIcon icon={faCamera} className="mr-2" /> Capturer
+                    </button>
+                    {imageSrc && (
+                        <img src={imageSrc} alt="Captured" className="mt-4 rounded" />
                     )}
                 </div>
             </div>
