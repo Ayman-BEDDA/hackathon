@@ -163,7 +163,7 @@ function Room() {
                         <FontAwesomeIcon icon={streaming ? faMicrophone: faMicrophoneSlash } className="mr-2" />
                     </button>
                 </div>
-                <div className="mt-8 w-full max-w-lg mx-auto p-4 bg-white rounded shadow-md h-96 overflow-y-auto">
+                <div className="mt-8 w-full max-w-lg mx-auto p-4 bg-white rounded shadow-md overflow-y-auto">
                     <h2 className="text-lg font-bold text-orange-600">Messages</h2>
                     <ul className="mt-4">
                         {messages.map((message, index) => (
