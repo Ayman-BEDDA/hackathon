@@ -5,6 +5,7 @@ import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import axios from 'axios';
 import io from 'socket.io-client';
 import { jwtDecode } from 'jwt-decode';
+import video from '../assets/speak.mp4';
 
 const socket = io('http://localhost:3001');
 
@@ -15,6 +16,9 @@ function Room() {
     const { id: roomId } = useParams();
     const [streaming, setStreaming] = useState(location.state?.isMicrophoneOn || false);
     const [room, setRoom] = useState(null);
+    const mediaRecorderRef = useRef(null);
+    const audioChunksRef = useRef([]);
+    const videoRef = useRef(null);
     const [messages, setMessages] = useState([]);
     const [audioUrl, setAudioUrl] = useState(null);
     const [transcriptions, setTranscriptions] = useState([]);
@@ -96,11 +100,30 @@ function Room() {
 
     useEffect(() => {
         socket.on('transcriptionResult', (transcription) => {
-            console.log('Transcription:', transcription);
             setTranscriptions(prevTranscriptions => [...prevTranscriptions, transcription]);
             setMessages(prevMessages => [...prevMessages, { role: 'user', content: transcription }]);
         });
     }, []);
+
+    useEffect(() => {
+        const videoElement = videoRef.current;
+
+        if (videoElement) {
+            videoElement.addEventListener('ended', handleVideoEnded);
+        }
+
+        return () => {
+            if (videoElement) {
+                videoElement.removeEventListener('ended', handleVideoEnded);
+            }
+        };
+    }, []);
+
+    const handleVideoEnded = () => {
+        if (videoRef.current) {
+            videoRef.current.pause();
+        }
+    };
 
     const leaveRoom = async () => {
         try {
@@ -131,18 +154,25 @@ function Room() {
         try {
             const response = await axios.post('http://localhost:3001/response-vocal', { text: message }, { responseType: 'blob' });
             const url = window.URL.createObjectURL(new Blob([response.data], { type: 'audio/wav' }));
-            console.log('Audio URL:', url);
+
             const audio = new Audio(url);
-            
+
             await audio.play();
 
-            setAudioUrl(url);
+            if (videoRef.current) {
+                videoRef.current.play();
+            }
 
             audio.onended = () => {
+                if (videoRef.current) {
+                    videoRef.current.pause();
+                }
+
                 const recognition = recognitionRef.current;
                 recognition.start();
                 setStreaming(true);
             };
+            setAudioUrl(url);
         } catch (error) {
             console.error('Error getting vocal response:', error);
             setAudioUrl(null);
@@ -172,13 +202,12 @@ function Room() {
                         <FontAwesomeIcon icon={streaming ? faMicrophone : faMicrophoneSlash} className="mr-2" />
                     </button>
                 </div>
-                {transcriptions.length > 0 && (
                 <div className="mt-8 w-full max-w-lg mx-auto p-4 bg-white rounded shadow-md overflow-y-auto">
                     <h2 className="text-lg font-bold text-orange-600">Messages</h2>
                     <ul className="mt-4">
                         {messages.map((message, index) => (
                             <li key={index} className="mb-2">
-                                <div className={`p-2 rounded ${message.role === 'user' ? 'bg-white-400 text-black-700' : 'bg-orange-400 text-white'}`}>
+                                <div className={`p-2 rounded ${message.role === 'user' ? 'bg-gray-200 text-black-700' : 'bg-orange-400 text-white'}`}>
                                     {message.content}
                                 </div>
                             </li>
@@ -189,7 +218,9 @@ function Room() {
                         <audio src={audioUrl} controls className="mt-4" />
                     )}
                 </div>
-                )}
+            </div>
+            <div className="mt-8 w-full max-w-lg mx-auto">
+                <video ref={videoRef} src={video} className="w-full"/>
             </div>
         </div>
     );

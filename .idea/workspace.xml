@@ -6,9 +6,7 @@
   <component name="ChangeListManager">
     <list default="true" id="c1ab6942-29e5-46ed-898a-9f85385ebb9f" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/client/src/components/Navbar.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/client/src/components/Navbar.jsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/client/src/pages/Room.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/client/src/pages/Room.jsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/server/server.js" beforeDir="false" afterPath="$PROJECT_DIR$/server/server.js" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -21,7 +19,7 @@
   <component name="Git.Settings">
     <option name="RECENT_BRANCH_BY_REPOSITORY">
       <map>
-        <entry key="$PROJECT_DIR$" value="feature/login-register" />
+        <entry key="$PROJECT_DIR$" value="feature/design" />
       </map>
     </option>
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
@@ -41,7 +39,7 @@
     &quot;WebServerToolWindowFactoryState&quot;: &quot;false&quot;,
     &quot;javascript.nodejs.core.library.configured.version&quot;: &quot;20.13.1&quot;,
     &quot;javascript.nodejs.core.library.typings.version&quot;: &quot;20.13.0&quot;,
-    &quot;last_opened_file_path&quot;: &quot;C:/Users/ayman/OneDrive/Documents/hackaton/client&quot;,
+    &quot;last_opened_file_path&quot;: &quot;C:/Users/ayman/OneDrive/Documents/hackaton/client/public&quot;,
     &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
     &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
     &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
@@ -58,11 +56,15 @@
 }</component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
+      <recent name="C:\Users\ayman\OneDrive\Documents\hackaton\client\public" />
+      <recent name="C:\Users\ayman\OneDrive\Documents\hackaton\client\src\assets" />
       <recent name="C:\Users\ayman\OneDrive\Documents\hackaton\client" />
       <recent name="C:\Users\ayman\OneDrive\Documents\hackaton\server" />
       <recent name="C:\Users\ayman\OneDrive\Documents\hackaton" />
-      <recent name="C:\Users\ayman\OneDrive\Documents\hackaton\server\controllers" />
-      <recent name="C:\Users\ayman\OneDrive\Documents\hackaton\server\routes" />
+    </key>
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="C:\Users\ayman\OneDrive\Documents\hackaton\client\src\assets" />
+      <recent name="C:\Users\ayman\OneDrive\Documents\hackaton\client\public" />
     </key>
   </component>
   <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
@@ -77,6 +79,8 @@
       <workItem from="1719235278659" duration="779000" />
       <workItem from="1719236092972" duration="1388000" />
       <workItem from="1719237520065" duration="10223000" />
+      <workItem from="1719494155265" duration="108000" />
+      <workItem from="1719494298301" duration="2761000" />
     </task>
     <servers />
   </component>
