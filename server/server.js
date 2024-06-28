@@ -6,6 +6,7 @@ const fs = require('fs');
 const FormData = require('form-data');
 const UserRouter = require("./routes/user");
 const RoomRouter = require("./routes/room");
+const { Report } = require("./db");
 const ttsRoutes = require("./routes/tts");
 const SecurityRouter = require("./routes/security");
 const cors = require("cors");
@@ -86,6 +87,51 @@ app.post('/upload-image', upload.single('image'), async (req, res) => {
     }
 });
 
+app.post("/report/:userId", async (req, res) => {
+    const { userId } = req.params;
+    const { message, roomId } = req.body;
+
+    if (!message) {
+        return res.status(400).json({ error: "Message is required" });
+    }
+
+    try {
+        const response = await openai.chat.completions.create({
+            model: "gpt-4-turbo",
+            messages: [
+                { role: "system", content: "Tu es un assistant médical virtuel. Tu dois extraire le sujet et la description du message, quelque soit le type de message." },
+                { role: "user", content: message }
+            ],
+        });
+
+        const responseMessage = response.choices[0].message.content;
+        console.log('Report response:', responseMessage);
+        const lines = responseMessage.split('\n');
+        const subjectLine = lines.find(line => line.startsWith('Sujet:'));
+        const descriptionLine = lines.find(line => line.startsWith('Description:'));
+
+        if (!subjectLine || !descriptionLine) {
+            throw new Error('Could not parse subject and description');
+        }
+
+        const subject = subjectLine.replace('Sujet:', '').trim();
+        const description = descriptionLine.replace('Description:', '').trim();
+
+        const createdReport = await Report.create({
+            userId,
+            subject,
+            description,
+            roomId
+        });
+
+        res.status(201).json(createdReport);
+    } catch (error) {
+        console.error('Error creating report:', error);
+        res.status(500).json({ error: 'Failed to create report' });
+    }
+});
+
+
 app.get("/", (req, res) => {
     res.send("Hello World!");
 });
@@ -106,25 +152,7 @@ app.post("/response/:roomId", async (req, res) => {
         conversations[roomId] = [
             {
                 role: "system",
-                content: `
-                    Tu es un assistant médical virtuel spécialisé dans l'analyse des données patient collectées via SMS et messages vocaux. 
-                    Ton rôle est d'aider à identifier des thèmes récurrents, des préoccupations des patients et des tendances émergentes pour améliorer les services médicaux. 
-                    Tu dois fournir des analyses utiles et proposer des projets pertinents basés sur ces données.
-
-                    Voici le contexte de ton application:
-                    - Collecte de données: Réponses SMS et messages vocaux des patients.
-                    - Objectif: Analyser ces données pour en tirer des informations utiles et proposer des projets pertinents.
-                    - Techniques utilisées: Transcription audio, analyse textuelle, analyse quantitative, etc.
-                    - Exemples de solutions: Chatbots médicaux, systèmes d’analyse de sentiments, systèmes de prévisions, tableaux de bord, études de données.
-
-                    Informations sur le client:
-                    - Société: Calmedica, fondée en 2013 par Corinne Segalen (médecin) et Alexis Hernot (ingénieur).
-                    - Mission: Révolutionner le rapport entre le patient et le système de soin, faire gagner du temps aux personnels de santé.
-                    - Produit: Plateforme de télésuivi multi-pathologies, agent conversationnel fonctionnant par SMS.
-                    - Chiffres clés: 20 millions de patients suivis, 150 établissements équipés, 500 parcours patients.
-
-                    Réponds uniquement et seulement en français.
-                `
+                content: "Tu es un assistant médical virtuel. Tu dois répondre aux questions des patients et leur fournir des informations utiles."
             }
         ];
     }
@@ -135,13 +163,14 @@ app.post("/response/:roomId", async (req, res) => {
     });
 
     try {
-        const result = await openai.createChatCompletion({
-            model: "gpt-3.5-turbo",
+        const result = await openai.chat.completions.create({
+            model: "gpt-4-turbo",
             messages: conversations[roomId]
         });
 
-        const responseMessage = result.data.choices[0].message.content;
+        const responseMessage = result.choices[0].message.content;
 
+        // Ajouter la réponse de l'assistant à la conversation
         conversations[roomId].push({
             role: "assistant",
             content: responseMessage
