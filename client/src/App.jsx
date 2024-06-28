@@ -7,6 +7,7 @@ import Login from "./pages/Login";
 import Room from "./pages/Room";
 import TextToSpeech from "./components/TextToSpeech";
 import WaitingRoom from './pages/WaitingRoom';
+import PatientsList from "./pages/PatientsList";
 
 function App() {
   return (
@@ -23,6 +24,7 @@ function App() {
                       <Route path="/logout" element={<Navigate to="/" replace />} />
                       <Route path="*" element={<Navigate to="/" replace/>}/>
                       <Route path="/response-vocal" element={<TextToSpeech/>}/>
+                      <Route path="/patients" element={<PatientsList/>}/>
                   </Routes>
               </div>
           </div>

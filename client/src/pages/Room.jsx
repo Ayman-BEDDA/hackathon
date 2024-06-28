@@ -105,6 +105,7 @@ function Room() {
 
     useEffect(() => {
         socket.on('transcriptionResult', (transcription) => {
+            console.log('Transcription:', transcription);
             setTranscriptions(prevTranscriptions => [...prevTranscriptions, transcription]);
             setMessages(prevMessages => [...prevMessages, { role: 'user', content: transcription }]);
         });
@@ -131,6 +132,8 @@ function Room() {
     }, [messages]);
 
     const handleVideoEnded = () => {
+        console.log('Video has ended');
+        // Pause the video when it ends
         if (videoRef.current) {
             videoRef.current.pause();
         }
@@ -201,19 +204,24 @@ function Room() {
 
             await audio.play();
 
+            // Play the video when the audio starts
             if (videoRef.current) {
                 videoRef.current.play();
             }
 
             audio.onended = () => {
+                console.log('Audio has ended');
+                // Pause the video when the audio ends
                 if (videoRef.current) {
                     videoRef.current.pause();
                 }
 
+                // Restart recognition
                 const recognition = recognitionRef.current;
                 recognition.start();
                 setStreaming(true);
             };
+
             setAudioUrl(url);
         } catch (error) {
             console.error('Error getting vocal response:', error);
@@ -298,7 +306,7 @@ function Room() {
             </div>
         </div>
     );
-    
+
 }
 
 export default Room;

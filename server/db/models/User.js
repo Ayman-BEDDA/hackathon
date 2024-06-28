@@ -22,6 +22,13 @@ module.exports = (connection) => {
                     len: [1, 64],
                 },
             },
+            role: {
+                type: DataTypes.STRING(64),
+                allowNull: true,
+                validate: {
+                    len: [1, 64],
+                },
+            },
             name: {
                 type: DataTypes.STRING(64),
                 allowNull: false,
