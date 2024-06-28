@@ -11,7 +11,7 @@ import WaitingRoom from './pages/WaitingRoom';
 function App() {
   return (
       <Router>
-          <div className="App">
+          <div className="App font-poppins">
               <Navbar/>
               <div className="bg-orange-50 min-h-screen pt-20">
                   <Routes>

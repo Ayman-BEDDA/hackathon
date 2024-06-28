@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faMicrophone, faMicrophoneSlash } from '@fortawesome/free-solid-svg-icons';
+import { faMicrophone, faMicrophoneSlash, faCamera } from '@fortawesome/free-solid-svg-icons';
 
 function WaitingRoom() {
     const navigate = useNavigate();
@@ -54,7 +54,7 @@ function WaitingRoom() {
                         {isMicrophoneOn ? 'Désactiver le micro' : 'Activer le micro'}
                     </button>
                     <button
-                        className={`bg-green-500 text-white font-semibold py-2 px-4 rounded mr-2`}
+                        className="bg-green-500 text-white font-semibold py-2 px-4 rounded mr-2"
                         onClick={handleStart}
                     >
                         Rejoindre la salle
@@ -66,15 +66,27 @@ function WaitingRoom() {
                         Annuler
                     </button>
                 </div>
-                {!isMicrophoneOn && <p className="text-red-500">Veuillez activer votre microphone pour commencer.</p>}
             </div>
-            <div className="mt-8 p-4 bg-gray-100 rounded shadow-md">
-                <h2 className="text-2xl font-bold mb-2">Instructions</h2>
-                <ul className="list-disc list-inside">
-                    <li>Assurez-vous que votre microphone est activé et fonctionne correctement.</li>
-                    <li>En cas de problème, vérifiez les paramètres de votre navigateur.</li>
-                    <li>Vous pouvez annuler à tout moment en cliquant sur le bouton "Annuler".</li>
-                </ul>
+            <div className="mt-8 p-4">
+                <h2 className="text-2xl font-bold mb-4">Instructions</h2>
+                <div className="space-y-4">
+                    <div className="bg-white p-4 rounded shadow-sm">
+                        <h3 className="text-xl font-semibold mb-2">Utilisation du microphone</h3>
+                        <ul className="list-disc list-inside">
+                            <li>Assurez-vous que votre microphone est activé et fonctionne correctement.</li>
+                            <li>En cas de problème, vérifiez les paramètres de votre navigateur.</li>
+                            <li>Vous pouvez annuler à tout moment en cliquant sur le bouton "Annuler".</li>
+                        </ul>
+                    </div>
+                    <div className="bg-white p-4 rounded shadow-sm">
+                        <h3 className="text-xl font-semibold mb-2">Utilisation de la caméra</h3>
+                        <ul className="list-disc list-inside">
+                            <li>Vous pourrez pendant votre rendez-vous, activer la caméra pour capturer des images et les envoyer à l'assistant pour analyse médicale.</li>
+                            <li>Pour activer votre caméra, assurez-vous que votre navigateur a les permissions nécessaires.</li>
+                            <li>En cas de problème, vérifiez les paramètres de votre navigateur et réessayez.</li>
+                        </ul>
+                    </div>
+                </div>
             </div>
         </div>
     );
