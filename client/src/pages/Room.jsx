@@ -2,10 +2,10 @@ import React, { useEffect, useState, useRef } from 'react';
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import axios from 'axios';
 import io from 'socket.io-client';
-import jwtDecode from 'jwt-decode';
-import Header from './components/Header';
-import VideoStream from './components/VideoStream';
-import Chat from './components/Chat';
+import { jwtDecode } from 'jwt-decode';
+import Header from '../components/Header';
+import VideoStream from '../components/VideoStream';
+import Chat from '../components/Chat';
 import video from '../assets/speak.mp4';
 
 const socket = io('http://localhost:3001');
@@ -232,6 +232,7 @@ function Room() {
     };
 
     const createReport = async (message) => {
+        console.log('Creating report:', message);
         try {
             const token = localStorage.getItem('token');
             const response = await axios.post(`http://localhost:3001/report/${user.id}`, {

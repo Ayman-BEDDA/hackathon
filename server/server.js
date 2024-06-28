@@ -25,7 +25,7 @@ app.use(express.json());
 app.use("/", require("./routes/security"));
 app.use("/users", require("./routes/user"));
 app.use("/rooms", require("./routes/room"));
-app.use("/reports", require("./routes/report"));
+app.use("/report", require("./routes/report"));
 app.use("/", require("./routes/tts"));
 app.use(require("./routes/upload"));
 
