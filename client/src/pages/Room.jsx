@@ -139,7 +139,7 @@ function Room() {
 
     const handleVideoEnded = () => {
         console.log('Video has ended');
-        // Pause the video when it ends
+
         if (videoRef.current) {
             videoRef.current.pause();
         }
@@ -147,12 +147,6 @@ function Room() {
 
     const leaveRoom = async () => {
         try {
-            await fetch(`http://localhost:3001/rooms/${roomId}`, {
-                method: 'DELETE',
-                headers: {
-                    'Content-Type': 'application/json',
-                }
-            });
             navigate('/');
         } catch (error) {
             console.error('Erreur:', error);
@@ -173,7 +167,6 @@ function Room() {
         const imageSrc = webcamRef.current.getScreenshot();
         setImageSrc(imageSrc);
 
-        // Convert data URL to Blob
         fetch(imageSrc)
             .then(res => res.blob())
             .then(blob => {
@@ -195,6 +188,7 @@ function Room() {
             });
 
             const aiResponse = response.data.response;
+            playVocalResponse(aiResponse);
             setMessages(prevMessages => [...prevMessages, { role: 'assistant', content: aiResponse }]);
             setLoadingImage(false);
         } catch (error) {

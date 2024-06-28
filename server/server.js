@@ -76,8 +76,6 @@ app.post('/upload-image', upload.single('image'), async (req, res) => {
 
         const description = response.choices[0].message.content;
 
-        console.log('Image description:', description);
-        
         res.json({ response: description });
     } catch (error) {
         console.error('Error during image description:', error);
