@@ -8,6 +8,7 @@ const UserRouter = require("./routes/user");
 const RoomRouter = require("./routes/room");
 const { Report } = require("./db");
 const ttsRoutes = require("./routes/tts");
+const reportRouter = require("./routes/report");
 const SecurityRouter = require("./routes/security");
 const cors = require("cors");
 const checkFormat = require("./middlewares/check-format");
@@ -40,6 +41,7 @@ app.use(express.json());
 app.use("/", SecurityRouter);
 app.use("/users", UserRouter);
 app.use("/rooms", RoomRouter);
+app.use("/reports", reportRouter);
 app.use("/", ttsRoutes);
 
 app.post('/upload-image', upload.single('image'), async (req, res) => {
@@ -99,38 +101,43 @@ app.post("/report/:userId", async (req, res) => {
         const response = await openai.chat.completions.create({
             model: "gpt-4-turbo",
             messages: [
-                { role: "system", content: "Tu es un assistant médical virtuel. Tu dois extraire le sujet et la description du message, quelque soit le type de message." },
+                { role: "system", content: "Tu es un assistant médical virtuel. Tu dois extraire le sujet et la description du message et les mettre absolument dans un objet, quelque soit le type de message." },
                 { role: "user", content: message }
             ],
         });
 
         const responseMessage = response.choices[0].message.content;
-        console.log('Report response:', responseMessage);
-        const lines = responseMessage.split('\n');
-        const subjectLine = lines.find(line => line.startsWith('Sujet:'));
-        const descriptionLine = lines.find(line => line.startsWith('Description:'));
 
-        if (!subjectLine || !descriptionLine) {
-            throw new Error('Could not parse subject and description');
-        }
+        const parsedResponseMessage = JSON.parse(responseMessage);
+        const subject = parsedResponseMessage.sujet;
+        const description = parsedResponseMessage.description;
 
-        const subject = subjectLine.replace('Sujet:', '').trim();
-        const description = descriptionLine.replace('Description:', '').trim();
-
-        const createdReport = await Report.create({
-            userId,
-            subject,
-            description,
-            roomId
+        const relevanceCheckResponse = await openai.chat.completions.create({
+            model: "gpt-4-turbo",
+            messages: [
+                { role: "system", content: "Tu es un assistant médical virtuel. Tu dois vérifier si le sujet et la description suivants sont liés au médical ou à la santé. Réponds par 'Oui' ou 'Non'." },
+                { role: "user", content: `Sujet: ${subject}\nDescription: ${description}` }
+            ],
         });
 
-        res.status(201).json(createdReport);
+        const isRelevant = relevanceCheckResponse.choices[0].message.content.trim().toLowerCase() === 'oui';
+
+        if (isRelevant) {
+            const createdReport = await Report.create({
+                userId,
+                subject,
+                description,
+                roomId
+            });
+
+            return res.status(201).json(createdReport);
+        } else {
+            return res.status(400).json({ error: 'The message is not relevant to medical or health topics' });
+        }
     } catch (error) {
-        console.error('Error creating report:', error);
         res.status(500).json({ error: 'Failed to create report' });
     }
 });
-
 
 app.get("/", (req, res) => {
     res.send("Hello World!");
