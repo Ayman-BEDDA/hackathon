@@ -17,8 +17,6 @@ const TtsController = {
             return res.status(400).json({ error: 'Text is required' });
         }
 
-        console.log('Text to synthesize:', text);
-
         try {
             const mp3 = await openai.audio.speech.create({
                 model: "tts-1",

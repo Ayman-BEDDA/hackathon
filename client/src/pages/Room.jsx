@@ -82,6 +82,7 @@ function Room() {
                         ...prevMessages,
                         { role: 'user', content: finalTranscript }
                     ]);
+                    createReport(finalTranscript);
                 }
             };
 
@@ -239,6 +240,29 @@ function Room() {
 
     const toggleCamera = () => {
         setCameraEnabled(!cameraEnabled);
+    };
+
+    const createReport = async (message) => {
+        try {
+            const token = localStorage.getItem('token');
+            const response = await axios.post(`http://localhost:3001/report/${user.id}`, {
+                message,
+                roomId
+            }, {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+
+            if (response.status === 201) {
+                console.log('Report created:', response.data);
+                // Vous pouvez ajouter un message ou une action ici pour notifier que le rapport a été créé.
+            } else {
+                console.error('Error creating report:', response.data);
+            }
+        } catch (error) {
+            console.error('Error creating report:', error);
+        }
     };
 
     return (
