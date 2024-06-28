@@ -6,6 +6,7 @@ const fs = require('fs');
 const FormData = require('form-data');
 const UserRouter = require("./routes/user");
 const RoomRouter = require("./routes/room");
+const { Report } = require("./db");
 const ttsRoutes = require("./routes/tts");
 const SecurityRouter = require("./routes/security");
 const cors = require("cors");
@@ -85,6 +86,51 @@ app.post('/upload-image', upload.single('image'), async (req, res) => {
         }
     }
 });
+
+app.post("/report/:userId", async (req, res) => {
+    const { userId } = req.params;
+    const { message, roomId } = req.body;
+
+    if (!message) {
+        return res.status(400).json({ error: "Message is required" });
+    }
+
+    try {
+        const response = await openai.chat.completions.create({
+            model: "gpt-4-turbo",
+            messages: [
+                { role: "system", content: "Tu es un assistant médical virtuel. Tu dois extraire le sujet et la description du message, quelque soit le type de message." },
+                { role: "user", content: message }
+            ],
+        });
+
+        const responseMessage = response.choices[0].message.content;
+        console.log('Report response:', responseMessage);
+        const lines = responseMessage.split('\n');
+        const subjectLine = lines.find(line => line.startsWith('Sujet:'));
+        const descriptionLine = lines.find(line => line.startsWith('Description:'));
+
+        if (!subjectLine || !descriptionLine) {
+            throw new Error('Could not parse subject and description');
+        }
+
+        const subject = subjectLine.replace('Sujet:', '').trim();
+        const description = descriptionLine.replace('Description:', '').trim();
+
+        const createdReport = await Report.create({
+            userId,
+            subject,
+            description,
+            roomId
+        });
+
+        res.status(201).json(createdReport);
+    } catch (error) {
+        console.error('Error creating report:', error);
+        res.status(500).json({ error: 'Failed to create report' });
+    }
+});
+
 
 app.get("/", (req, res) => {
     res.send("Hello World!");

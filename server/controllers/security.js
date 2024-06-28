@@ -12,7 +12,7 @@ module.exports = function SecurityController(UserService) {
         
         const user = await UserService.login(email, password);
         const token = jwt.sign(
-          { id: user.id, login: user.login, isValid: user.isValid, email: user.email, name: user.name, surname: user.surname, Birthdate: user.Birthdate },
+          { id: user.id, login: user.login, isValid: user.isValid, email: user.email, name: user.name, surname: user.surname, Birthdate: user.Birthdate, role: user.role},
           process.env.JWT_SECRET,
           {
             expiresIn: "3h",
@@ -32,9 +32,9 @@ module.exports = function SecurityController(UserService) {
     },
     register: async (req, res, next) => {
       try {
-        const { login, name, surname, email, password, Birthdate } = req.body;
+        const { login, name, surname, email, password, Birthdate, role } = req.body;
 
-        if (!login || !email || !password || !name || !surname || !Birthdate) {
+        if (!login || !email || !password || !name || !surname || !Birthdate || !role) {
           return res.status(400).json({ error: "Veullez remplir les champs sont des champs obligatoires." });
         }
 
@@ -49,11 +49,12 @@ module.exports = function SecurityController(UserService) {
           password,
           name,
           surname,
-          Birthdate
+          Birthdate,
+          role
         });
 
         const token = jwt.sign(
-          { id: user.id, email: user.email, isValid: user.isValid ,name: user.name, surname: user.surname, login: user.login, Birthdate: user.Birthdate},
+          { id: user.id, email: user.email, isValid: user.isValid ,name: user.name, surname: user.surname, login: user.login, Birthdate: user.Birthdate, role: user.role },
           process.env.JWT_SECRET,
           {
             expiresIn: "2h",

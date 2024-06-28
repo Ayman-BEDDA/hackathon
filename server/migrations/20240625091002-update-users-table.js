@@ -4,16 +4,8 @@
 module.exports = {
   async up (queryInterface, Sequelize) {
     await Promise.all([
-      queryInterface.addColumn('users', 'name', {
+      queryInterface.addColumn('users', 'role', {
         type: Sequelize.STRING(64),
-        allowNull: false,
-      }),
-      queryInterface.addColumn('users', 'surname', {
-        type: Sequelize.STRING(64),
-        allowNull: false,
-      }),
-      queryInterface.addColumn('users', 'Birthdate', {
-        type: Sequelize.DATE,
         allowNull: true,
       }),
     ]);
@@ -22,8 +14,6 @@ module.exports = {
   async down (queryInterface, Sequelize) {
     await Promise.all([
       queryInterface.removeColumn('users', 'name'),
-      queryInterface.removeColumn('users', 'surname'),
-      queryInterface.removeColumn('users', 'Birthdate'),
     ]);
   }
 };
