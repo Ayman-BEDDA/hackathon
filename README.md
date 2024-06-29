@@ -9,10 +9,10 @@
 
 ## Fonctionnalités
 
-- Api vocal :sunny: [@muthuxv](https://github.com/muthuxv) :deciduous_tree: [@Ayman-BEDDA](https://github.com/Ayman-BEDDA)
-- Api vision :sunny: [@muthuxv](https://github.com/muthuxv)
-- Api réponse :zap: [@Maxime-Lao](https://github.com/Maxime-Lao)
-- Api report :zap: [@Maxime-Lao](https://github.com/Maxime-Lao)
+- Api vocal (Envoi d'une réponse vocal/audio) :sunny: [@muthuxv](https://github.com/muthuxv) :deciduous_tree: [@Ayman-BEDDA](https://github.com/Ayman-BEDDA)
+- Api vision (Analyse d'image médicale) :sunny: [@muthuxv](https://github.com/muthuxv)
+- Api réponse (Génération d'une réponse) :zap: [@Maxime-Lao](https://github.com/Maxime-Lao)
+- Api report (Génération d'un rapport médical) :zap: [@Maxime-Lao](https://github.com/Maxime-Lao)
 - Temps réel :sunny: [@muthuxv](https://github.com/muthuxv) :snowflake: [@SimonBTSSio](https://github.com/SimonBTSSio)
 - Espace professionnel de santé :deciduous_tree: [@Ayman-BEDDA](https://github.com/Ayman-BEDDA)
 - Espace patient :sunny: [@muthuxv](https://github.com/muthuxv)
