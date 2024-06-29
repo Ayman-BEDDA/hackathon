@@ -235,7 +235,7 @@ function Room() {
         console.log('Creating report:', message);
         try {
             const token = localStorage.getItem('token');
-            const response = await axios.post(`http://localhost:3001/report/${user.id}`, {
+            const response = await axios.post(`http://localhost:3001/reports/${user.id}`, {
                 message,
                 roomId
             }, {
