@@ -48,6 +48,8 @@ function PatientsList() {
 
         const doc = new jsPDF();
 
+        console.log(reports);
+
         // Header
         doc.setFillColor(255, 138, 0); // Couleur d'arrière-plan similaire à votre site
         doc.rect(0, 0, doc.internal.pageSize.width, 40, 'F'); // Barre supérieure
